@@ -1,5 +1,7 @@
 <script setup>
 import AppHeader from './components/AppHeader.vue';
+import ToastContainer from '@/components/ui/ToastContainer.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 </script>
 
 <template>
@@ -13,6 +15,9 @@ import AppHeader from './components/AppHeader.vue';
     <footer class="mt-auto border-t border-white/5 bg-gray-900/50 backdrop-blur-sm py-8 text-center">
       <p class="text-gray-500 text-sm font-medium">&copy; {{ new Date().getFullYear() }} Baseball Record System</p>
     </footer>
+
+    <ToastContainer />
+    <ConfirmDialog />
   </div>
 </template>
 

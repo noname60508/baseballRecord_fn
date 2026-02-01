@@ -5,9 +5,11 @@ import { useI18n } from 'vue-i18n';
 import gameService from '@/services/gameService';
 import masterDataService from '@/services/masterDataService';
 import QuickAddModal from '@/components/QuickAddModal.vue';
+import { useToast } from '@/composables/useToast';
 
 const router = useRouter();
 const { t } = useI18n();
+const toast = useToast();
 
 const formData = ref({
   date: new Date().toISOString().split('T')[0],
@@ -55,7 +57,7 @@ const handleSubmit = async () => {
     });
   } catch (error) {
     console.error('Failed to create game:', error);
-    alert('建立比賽失敗');
+    toast.error('建立比賽失敗');
   } finally {
     isSubmitting.value = false;
   }

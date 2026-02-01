@@ -4,9 +4,11 @@ import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
 import userService from '@/services/UserService';
 import authService from '@/services/authService';
+import { useToast } from '@/composables/useToast';
 
 const authStore = useAuthStore();
 const { t } = useI18n();
+const toast = useToast();
 
 const isEditingProfile = ref(false);
 const isChangingPassword = ref(false);
@@ -84,17 +86,17 @@ const handleProfileSave = async () => {
     isEditingProfile.value = false;
     formData.value.iconFile = null;
     previewIcon.value = null;
-    alert('個人資料已更新');
+    toast.success('個人資料已更新');
   } catch (error) {
     console.error('Update profile failed:', error);
-    alert('更新失敗');
+    toast.error('更新失敗');
   }
 };
 
 const handlePasswordSave = async () => {
   if (!user.value) return;
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    alert('新密碼不一致');
+    toast.error('新密碼不一致');
     return;
   }
 
@@ -111,10 +113,10 @@ const handlePasswordSave = async () => {
     passwordForm.value.password = '';
     passwordForm.value.newPassword = '';
     passwordForm.value.confirmPassword = '';
-    alert(t('profile.passwordUpdated'));
+    toast.success(t('profile.passwordUpdated'));
   } catch (error) {
     console.error('Update password failed:', error);
-    alert(t('profile.passwordUpdatedFailed'));
+    toast.error(t('profile.passwordUpdatedFailed'));
   }
 };
 
@@ -144,10 +146,10 @@ const handleSendVerification = async () => {
       // 這裡直接用 userService 也可以，如果我們加在那裡。但 authService 較合理。
       // 因為還要修改 import，我會盡量用現有的或新增 import
       await authService.sendVerificationEmail();
-      alert(t('profile.verificationSent'));
+      toast.success(t('profile.verificationSent'));
   } catch (error) {
       console.error('Failed to send verification email:', error);
-      alert('發送失敗');
+      toast.error('發送失敗');
   }
 };
 </script>

@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import masterDataService from '@/services/masterDataService';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n();
+const { showConfirm } = useConfirm();
 
 const items = ref([]);
 const isLoading = ref(true);
@@ -70,7 +72,9 @@ const handleUpdate = async () => {
 };
 
 const handleDelete = async (id) => {
-  if (!confirm('確定要刪除此賽季嗎？')) return;
+  const confirmed = await showConfirm('確定要刪除此賽季嗎？', '刪除賽季');
+  if (!confirmed) return;
+  
   try {
     await masterDataService.seasons.delete(id);
     await fetchItems();
