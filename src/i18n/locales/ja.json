@@ -1,0 +1,88 @@
+{
+    "common": {
+        "appName": "野球記録管理システム",
+        "login": "ログイン",
+        "logout": "ログアウト",
+        "save": "保存",
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "edit": "編集",
+        "add": "追加",
+        "search": "検索",
+        "confirm": "確認",
+        "back": "戻る",
+        "loading": "読み込み中...",
+        "noData": "データなし"
+    },
+    "nav": {
+        "games": "試合記録",
+        "batting": "打撃成績",
+        "battingRecords": "試合別成績",
+        "battingStats": "統計データ",
+        "profile": "プロフィール",
+        "masterData": "マスターデータ管理"
+    },
+    "login": {
+        "title": "ログイン",
+        "account": "アカウント",
+        "password": "パスワード",
+        "loginButton": "ログイン",
+        "accountPlaceholder": "アカウントを入力",
+        "passwordPlaceholder": "パスワードを入力"
+    },
+    "games": {
+        "title": "試合記録",
+        "addGame": "試合を追加",
+        "team": "チーム",
+        "season": "シーズン",
+        "field": "球場",
+        "date": "日付",
+        "opponent": "対戦相手",
+        "score": "スコア",
+        "quickAdd": "クイック追加"
+    },
+    "batting": {
+        "title": "打撃成績",
+        "addRecord": "記録を追加",
+        "atBats": "打数",
+        "hits": "安打",
+        "homeRuns": "ホームラン",
+        "rbi": "打点",
+        "average": "打率",
+        "slugging": "長打率",
+        "ops": "OPS"
+    },
+    "masterData": {
+        "title": "マスターデータ管理",
+        "teams": "チーム",
+        "seasons": "シーズン",
+        "fields": "球場",
+        "name": "名前",
+        "teamType": "チームタイプ",
+        "myTeam": "自チーム",
+        "opponentTeam": "相手チーム",
+        "all": "すべて",
+        "search": "検索",
+        "addTeam": "チームを追加",
+        "addSeason": "シーズンを追加",
+        "addField": "球場を追加"
+    },
+    "profile": {
+        "title": "プロフィール",
+        "account": "アカウント",
+        "name": "名前",
+        "email": "メール",
+        "icon": "アイコン",
+        "updateIcon": "アイコンを更新",
+        "editProfile": "プロフィールを編集",
+        "changePassword": "パスワードを変更",
+        "currentPassword": "現在のパスワード",
+        "newPassword": "新しいパスワード",
+        "confirmPassword": "新しいパスワード（確認）",
+        "passwordNotMatch": "新しいパスワードが一致しません",
+        "passwordUpdated": "パスワードを更新しました",
+        "passwordUpdatedFailed": "パスワード更新に失敗しました",
+        "sendVerification": "確認メールを送信",
+        "verificationSent": "確認メールを送信しました"
+    }
+}

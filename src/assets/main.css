@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全域樣式 */
+body {
+  @apply bg-gray-900 text-gray-100 font-sans antialiased;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(30, 64, 175, 0.15) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(220, 38, 38, 0.1) 0%, transparent 20%);
+  background-attachment: fixed;
+}
+
+/* 自訂捲軸 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full hover:bg-gray-600 transition-colors;
+}
+
+/* 自訂元件樣式 */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-600 to-blue-500 text-white px-5 py-2.5 rounded-xl hover:from-blue-500 hover:to-blue-400 active:scale-95 transition-all duration-200 shadow-lg shadow-blue-900/50 font-medium tracking-wide flex items-center justify-center;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-red-600 to-red-500 text-white px-5 py-2.5 rounded-xl hover:from-red-500 hover:to-red-400 active:scale-95 transition-all duration-200 shadow-lg shadow-red-900/50 font-medium tracking-wide flex items-center justify-center;
+}
+
+.btn-ghost {
+  @apply bg-white/5 text-gray-300 px-5 py-2.5 rounded-xl hover:bg-white/10 hover:text-white active:scale-95 transition-all duration-200 border border-white/10;
+}
+
+.card {
+  @apply bg-gray-800/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl;
+}
+
+.input-field {
+  @apply w-full bg-gray-900/50 border border-gray-700 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500;
+}
+
+.page-title {
+  @apply text-3xl font-bold text-white mb-8 tracking-tight flex items-center gap-3;
+}
+
+.table-container {
+  @apply overflow-hidden rounded-xl border border-white/10 shadow-2xl;
+}
+
+.table-header {
+  @apply bg-gray-800/80 text-gray-400 text-xs font-semibold uppercase tracking-wider;
+}
+
+.table-cell {
+  @apply whitespace-nowrap text-sm text-gray-300 border-b border-gray-700/50;
+}
+
+.table-row {
+  @apply hover:bg-white/5 transition-colors duration-150;
+}
