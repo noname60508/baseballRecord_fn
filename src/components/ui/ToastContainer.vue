@@ -17,7 +17,7 @@ const { toasts, removeToast } = useToast();
       <div 
         v-for="toast in toasts" 
         :key="toast.id" 
-        class="pointer-events-auto inline-flex items-center w-auto max-w-[90vw] overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 backdrop-blur-md"
+        class="pointer-events-auto inline-flex items-center w-auto max-w-[90vw] overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 backdrop-blur-md will-change-transform"
         :class="{
           'bg-green-500/10 border border-green-500/20 text-green-400': toast.type === 'success',
           'bg-red-500/10 border border-red-500/20 text-red-400': toast.type === 'error',

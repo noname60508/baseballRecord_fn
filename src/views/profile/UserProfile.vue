@@ -6,6 +6,12 @@ import userService from '@/services/UserService';
 import authService from '@/services/authService';
 import { useToast } from '@/composables/useToast';
 
+// Components
+import BaseModal from '@/components/ui/BaseModal.vue';
+import TeamsCRUD from '@/views/masterData/TeamsCRUD.vue';
+import SeasonsCRUD from '@/views/masterData/SeasonsCRUD.vue';
+import FieldsCRUD from '@/views/masterData/FieldsCRUD.vue';
+
 const authStore = useAuthStore();
 const { t } = useI18n();
 const toast = useToast();
@@ -14,6 +20,9 @@ const isEditingProfile = ref(false);
 const isChangingPassword = ref(false);
 const isLoading = ref(true);
 const user = ref(null);
+
+// Tab State
+const activeTab = ref('teams'); // teams, seasons, fields
 
 const formData = ref({
   name: '',
@@ -39,7 +48,7 @@ const fetchUserProfile = async () => {
       const response = await userService.getUser(finalId);
       user.value = response.data.result; 
       
-      // 初始化表單資料
+      // Initialize form data
       formData.value.name = user.value.name;
       formData.value.email = user.value.email;
     }
@@ -54,7 +63,6 @@ const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file) {
     formData.value.iconFile = file;
-    // 建立預覽 URL
     previewIcon.value = URL.createObjectURL(file);
   }
 };
@@ -63,18 +71,35 @@ onMounted(() => {
   fetchUserProfile();
 });
 
+const openEditProfile = () => {
+   if (user.value) {
+        formData.value.name = user.value.name;
+        formData.value.email = user.value.email;
+    }
+    previewIcon.value = null;
+    formData.value.iconFile = null;
+    isEditingProfile.value = true;
+};
+
+const openChangePassword = () => {
+    passwordForm.value.password = '';
+    passwordForm.value.newPassword = '';
+    passwordForm.value.confirmPassword = '';
+    isChangingPassword.value = true;
+};
+
 const handleProfileSave = async () => {
   if (!user.value) return;
   
   try {
-    // 1. 更新基本資料 (PUT)
+    // 1. Update Basic Info (PUT)
     const basicData = {
         name: formData.value.name,
         email: formData.value.email
     };
     await userService.updateUser(user.value.id, basicData);
 
-    // 2. 如果有選擇新圖片，更新 Icon (POST)
+    // 2. Update Icon if new file selected (POST)
     if (formData.value.iconFile) {
         const iconData = new FormData();
         iconData.append('icon', formData.value.iconFile);
@@ -84,12 +109,8 @@ const handleProfileSave = async () => {
     
     await fetchUserProfile();
     isEditingProfile.value = false;
-    formData.value.iconFile = null;
-    previewIcon.value = null;
-    toast.success('個人資料已更新');
   } catch (error) {
     console.error('Update profile failed:', error);
-    toast.error('更新失敗');
   }
 };
 
@@ -110,52 +131,24 @@ const handlePasswordSave = async () => {
     await userService.updatePassword(passwordData);
     
     isChangingPassword.value = false;
-    passwordForm.value.password = '';
-    passwordForm.value.newPassword = '';
-    passwordForm.value.confirmPassword = '';
-    toast.success(t('profile.passwordUpdated'));
   } catch (error) {
     console.error('Update password failed:', error);
-    toast.error(t('profile.passwordUpdatedFailed'));
   }
-};
-
-const cancelEdit = () => {
-    isEditingProfile.value = false;
-    isChangingPassword.value = false;
-    // 重置表單
-    if (user.value) {
-        formData.value.name = user.value.name;
-        formData.value.email = user.value.email;
-    }
-    formData.value.iconFile = null;
-    previewIcon.value = null;
-    passwordForm.value.password = '';
-    passwordForm.value.newPassword = '';
-    passwordForm.value.confirmPassword = '';
 };
 
 const handleSendVerification = async () => {
   if (!user.value || !user.value.email) return;
   
   try {
-      // 呼叫 authService 發送驗證信
-      // 注意：這通常需要 user 已登入 (auth token)，我們有。
-      // 使用 authService，需確認是否已 import
-      // 目前 script setup 沒有 import authService，需補上
-      // 這裡直接用 userService 也可以，如果我們加在那裡。但 authService 較合理。
-      // 因為還要修改 import，我會盡量用現有的或新增 import
       await authService.sendVerificationEmail();
-      toast.success(t('profile.verificationSent'));
   } catch (error) {
       console.error('Failed to send verification email:', error);
-      toast.error('發送失敗');
   }
 };
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto space-y-8">
+  <div class="max-w-7xl mx-auto space-y-8">
     <h1 class="page-title !mb-0">
       <span class="text-cyan-500">👤</span>
       {{ t('nav.profile') }}
@@ -165,12 +158,13 @@ const handleSendVerification = async () => {
       <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
 
+    <!-- Profile Card -->
     <div v-else-if="user" class="card relative overflow-hidden">
       <!-- Background Effect -->
       <div class="absolute top-0 right-0 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl -z-10"></div>
 
-      <div class="flex items-start justify-between mb-8">
-        <div class="flex items-center space-x-6">
+      <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
+        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
           <div class="relative group">
             <div class="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-full w-24 h-24 flex items-center justify-center text-3xl font-bold shadow-lg shadow-blue-500/30 overflow-hidden border-4 border-gray-800">
               <img v-if="user.icon" :src="user.icon" alt="User Icon" class="w-full h-full object-cover">
@@ -188,11 +182,11 @@ const handleSendVerification = async () => {
           </div>
           
           <div class="space-y-1">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-white flex items-center justify-center md:justify-start gap-2">
               {{ user.name }}
             </h2>
             <p class="text-blue-400 font-medium text-sm">@{{ user.account }}</p>
-            <p class="text-gray-400 text-sm flex items-center gap-1">
+            <p class="text-gray-400 text-sm flex items-center justify-center md:justify-start gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -202,161 +196,134 @@ const handleSendVerification = async () => {
           </div>
         </div>
         
-        <div class="flex gap-4">
+        <div class="flex flex-wrap justify-center gap-3">
           <button 
-            v-if="!isEditingProfile && !isChangingPassword"
-            @click="isEditingProfile = true"
+            @click="openEditProfile"
             class="btn-primary text-sm py-2 px-4 shadow-lg shadow-blue-500/20"
           >
             {{ t('profile.editProfile') }}
           </button>
            <button 
-            v-if="!isEditingProfile && !isChangingPassword"
-            @click="isChangingPassword = true"
+            @click="openChangePassword"
             class="btn-ghost text-sm py-2 px-4 border border-white/10 hover:bg-white/5"
           >
             {{ t('profile.changePassword') }}
           </button>
         </div>
       </div>
-
-      <!-- Profile Edit Form -->
-      <form v-if="isEditingProfile" @submit.prevent="handleProfileSave" class="space-y-6 border-t border-white/10 pt-6 animate-fade-in">
-        
-        <!-- Icon Upload -->
-        <div class="flex flex-col items-center justify-center space-y-4 mb-6">
-          <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
+    </div>
+    
+    <!-- Modals -->
+    <!-- Edit Profile Modal -->
+    <BaseModal :isOpen="isEditingProfile" :title="t('profile.editProfile')" @close="isEditingProfile = false">
+      <form @submit.prevent="handleProfileSave" class="space-y-6">
+        <!-- Icon -->
+        <div class="flex flex-col items-center justify-center space-y-4">
+            <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
             <div class="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-full w-24 h-24 flex items-center justify-center text-3xl font-bold shadow-lg shadow-blue-500/30 overflow-hidden border-4 border-gray-800 hover:border-gray-600 transition-colors">
-              <img v-if="previewIcon" :src="previewIcon" alt="New Icon Preview" class="w-full h-full object-cover">
-              <img v-else-if="user.icon" :src="user.icon" alt="Current Icon" class="w-full h-full object-cover">
-              <span v-else>{{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}</span>
-              
-              <!-- Overlay -->
-              <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <img v-if="previewIcon" :src="previewIcon" alt="New Icon Preview" class="w-full h-full object-cover">
+                <img v-else-if="user.icon" :src="user.icon" alt="Current Icon" class="w-full h-full object-cover">
+                <span v-else>{{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}</span>
+                
+                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-              </div>
+                </div>
             </div>
-          </div>
-          <input 
-            type="file" 
-            ref="fileInput" 
-            class="hidden" 
-            accept="image/*"
-            @change="handleFileChange"
-          >
-          <p class="text-xs text-gray-500 text-center">{{ t('profile.updateIcon') }}</p>
+            </div>
+            <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange">
+            <p class="text-xs text-gray-500">{{ t('profile.updateIcon') }}</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="space-y-2 md:col-span-1">
-            <label class="block text-sm font-medium text-gray-400 ml-1">
-              {{ t('profile.name') }}
-            </label>
-            <input 
-              v-model="formData.name"
-              type="text" 
-              required
-              class="input-field"
-            >
-          </div>
-
-          <div class="space-y-2 md:col-span-2">
-            <label class="block text-sm font-medium text-gray-400 ml-1">
-              {{ t('profile.email') }}
-            </label>
-            <div class="grid grid-cols-3 gap-2">
-                <input 
-                v-model="formData.email"
-                type="email" 
-                required
-                class="input-field col-span-2"
-                >
-                <button 
-                    type="button"
-                    @click="handleSendVerification"
-                    class="btn-ghost px-3 border border-white/10 hover:bg-white/5 text-sm col-span-1 truncate"
-                    :title="t('profile.sendVerification')"
-                >
-                    {{ t('profile.sendVerification') }}
-                </button>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">{{ t('profile.name') }}</label>
+                <input v-model="formData.name" type="text" required class="input-field w-full">
             </div>
-          </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">{{ t('profile.email') }}</label>
+                <div class="flex gap-2">
+                    <input v-model="formData.email" type="email" required class="input-field w-full">
+                    <button type="button" @click="handleSendVerification" class="btn-ghost whitespace-nowrap px-3 border border-white/10" :title="t('profile.sendVerification')">
+                        {{ t('profile.sendVerification') }}
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="flex justify-end space-x-4 pt-4 border-t border-white/10">
-          <button 
-            type="button" 
-            class="btn-ghost"
-            @click="cancelEdit"
-          >
-            {{ t('common.cancel') }}
-          </button>
-          <button 
-            type="submit" 
-            class="btn-primary"
-          >
-            {{ t('common.save') }}
-          </button>
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+            <button type="button" class="btn-ghost" @click="isEditingProfile = false">{{ t('common.cancel') }}</button>
+            <button type="submit" class="btn-primary">{{ t('common.save') }}</button>
         </div>
       </form>
+    </BaseModal>
 
-      <!-- Password Change Form -->
-      <form v-if="isChangingPassword" @submit.prevent="handlePasswordSave" class="space-y-6 border-t border-white/10 pt-6 animate-fade-in">
+    <!-- Change Password Modal -->
+    <BaseModal :isOpen="isChangingPassword" :title="t('profile.changePassword')" @close="isChangingPassword = false">
+      <form @submit.prevent="handlePasswordSave" class="space-y-6">
          <div class="space-y-4">
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-400 ml-1">
-                {{ t('profile.currentPassword') }}
-                </label>
-                <input 
-                v-model="passwordForm.password"
-                type="password" 
-                required
-                class="input-field"
-                >
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">{{ t('profile.currentPassword') }}</label>
+                <input v-model="passwordForm.password" type="password" required class="input-field w-full">
             </div>
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-400 ml-1">
-                {{ t('profile.newPassword') }}
-                </label>
-                <input 
-                v-model="passwordForm.newPassword"
-                type="password" 
-                required
-                class="input-field"
-                >
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">{{ t('profile.newPassword') }}</label>
+                <input v-model="passwordForm.newPassword" type="password" required class="input-field w-full">
             </div>
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-400 ml-1">
-                {{ t('profile.confirmPassword') }}
-                </label>
-                <input 
-                v-model="passwordForm.confirmPassword"
-                type="password" 
-                required
-                class="input-field"
-                >
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-1">{{ t('profile.confirmPassword') }}</label>
+                <input v-model="passwordForm.confirmPassword" type="password" required class="input-field w-full">
             </div>
+         </div>
+         <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+            <button type="button" class="btn-ghost" @click="isChangingPassword = false">{{ t('common.cancel') }}</button>
+            <button type="submit" class="btn-primary">{{ t('common.save') }}</button>
+         </div>
+      </form>
+    </BaseModal>
+
+    <!-- Master Data Section -->
+    <div class="space-y-6">
+        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+            <span class="text-blue-500">📂</span>
+            {{ t('nav.masterData') }}
+        </h2>
+        
+        <!-- Tabs -->
+        <div class="flex space-x-1 bg-gray-900/50 p-1 rounded-xl border border-white/5 overflow-x-auto">
+            <button 
+                @click="activeTab = 'teams'"
+                class="flex-1 min-w-[100px] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                :class="activeTab === 'teams' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'"
+            >
+                {{ t('nav.teams') }}
+            </button>
+            <button 
+                @click="activeTab = 'seasons'"
+                class="flex-1 min-w-[100px] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                :class="activeTab === 'seasons' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'"
+            >
+                {{ t('nav.seasons') }}
+            </button>
+            <button 
+                @click="activeTab = 'fields'"
+                class="flex-1 min-w-[100px] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                :class="activeTab === 'fields' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'"
+            >
+                {{ t('nav.fields') }}
+            </button>
         </div>
 
-        <div class="flex justify-end space-x-4 pt-4 border-t border-white/10">
-          <button 
-            type="button" 
-            class="btn-ghost"
-            @click="cancelEdit"
-          >
-            {{ t('common.cancel') }}
-          </button>
-          <button 
-            type="submit" 
-            class="btn-primary"
-          >
-            {{ t('common.save') }}
-          </button>
+        <!-- content -->
+        <div class="card bg-gray-900/50 border border-white/5 min-h-[400px]">
+            <Transition mode="out-in" enter-active-class="transition duration-200 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-150 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
+                <TeamsCRUD v-if="activeTab === 'teams'" />
+                <SeasonsCRUD v-else-if="activeTab === 'seasons'" />
+                <FieldsCRUD v-else-if="activeTab === 'fields'" />
+            </Transition>
         </div>
-      </form>
     </div>
   </div>
 </template>

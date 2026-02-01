@@ -20,7 +20,10 @@
         "battingRecords": "試合別成績",
         "battingStats": "統計データ",
         "profile": "プロフィール",
-        "masterData": "マスターデータ管理"
+        "masterData": "マスターデータ管理",
+        "teams": "チーム",
+        "seasons": "シーズン",
+        "fields": "球場"
     },
     "login": {
         "title": "ログイン",

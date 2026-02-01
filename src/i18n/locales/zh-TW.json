@@ -20,7 +20,10 @@
         "battingRecords": "逐場成績",
         "battingStats": "統計數據",
         "profile": "個人資料",
-        "masterData": "主資料管理"
+        "masterData": "主資料管理",
+        "teams": "球隊",
+        "seasons": "賽季",
+        "fields": "場地"
     },
     "login": {
         "title": "登入",

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useToast } from '@/composables/useToast';
 
 // 建立 Axios 實例
 const api = axios.create({
@@ -44,6 +45,14 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
+        const { error: showError } = useToast();
+
+        // 優先使用後端回傳的錯誤訊息，否則使用 HTTP 狀態訊息
+        const message = error.response?.data?.message || error.message || '發生未知錯誤';
+
+        // 顯示錯誤 Toast
+        showError(message);
+
         // 處理 401 未授權錯誤
         if (error.response && error.response.status === 401) {
             // 可以在此處理自動登出邏輯

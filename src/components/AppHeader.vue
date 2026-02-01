@@ -23,7 +23,7 @@ const handleLogout = async () => {
 const navItems = [
   { to: '/games', label: 'nav.games' },
   { to: '/batting/records', label: 'nav.batting' },
-  { to: '/master-data', label: 'nav.masterData' },
+  // { to: '/master-data', label: 'nav.masterData' },
   { to: '/profile', label: 'nav.profile' },
 ];
 

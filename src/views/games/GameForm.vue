@@ -57,7 +57,6 @@ const handleSubmit = async () => {
     });
   } catch (error) {
     console.error('Failed to create game:', error);
-    toast.error('建立比賽失敗');
   } finally {
     isSubmitting.value = false;
   }
