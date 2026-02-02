@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import authService from '@/services/authService';
+import { useMasterDataStore } from './masterData';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -43,6 +44,10 @@ export const useAuthStore = defineStore('auth', {
                 this.isAuthenticated = false;
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('userId');
+
+                // Clear other stores
+                const masterDataStore = useMasterDataStore();
+                masterDataStore.clearCache();
             }
         },
 

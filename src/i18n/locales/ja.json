@@ -1,4 +1,9 @@
 {
+    "basic": {
+        "BB": "四球",
+        "HBP": "死球",
+        "HR": "本塁打"
+    },
     "common": {
         "appName": "野球記録管理システム",
         "login": "ログイン",
@@ -51,7 +56,12 @@
         "score": "スコア",
         "quickAdd": "クイック追加",
         "date": "日付",
-        "search": "検索"
+        "search": "検索",
+        "all": "すべて",
+        "gameResult": "試合結果",
+        "win": "勝",
+        "loss": "敗",
+        "tie": "和"
     },
     "batting": {
         "title": "打撃成績",

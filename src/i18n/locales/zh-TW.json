@@ -1,4 +1,9 @@
 {
+    "basic": {
+        "BB": "四壞",
+        "HBP": "觸身球",
+        "HR": "全壘打"
+    },
     "common": {
         "appName": "棒球紀錄管理系統",
         "login": "登入",
@@ -51,7 +56,12 @@
         "score": "比分",
         "quickAdd": "快速新增",
         "date": "日期",
-        "search": "搜尋"
+        "search": "搜尋",
+        "all": "全部",
+        "gameResult": "比賽結果",
+        "win": "勝",
+        "loss": "敗",
+        "tie": "和"
     },
     "batting": {
         "title": "打擊成績",

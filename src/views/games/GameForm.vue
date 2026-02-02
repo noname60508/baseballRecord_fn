@@ -1,12 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import gameService from '@/services/gameService';
 import masterDataService from '@/services/masterDataService';
 import QuickAddModal from '@/components/QuickAddModal.vue';
+import DatePicker from '@/components/DatePicker.vue';
+import TimePicker from '@/components/TimePicker.vue';
+import { useMasterDataStore } from '@/stores/masterData';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
+const route = useRoute();
 const { t } = useI18n();
 
 const formData = ref({
@@ -23,10 +28,8 @@ const formData = ref({
   memo: ''
 });
 
-const seasons = ref([]);
-const fields = ref([]);
-const myTeams = ref([]);
-const opponentTeams = ref([]);
+const masterDataStore = useMasterDataStore();
+const { seasons, fields, myTeams, opponentTeams } = storeToRefs(masterDataStore);
 const isSubmitting = ref(false);
 
 // Modal states
@@ -35,51 +38,34 @@ const showFieldModal = ref(false);
 const showMyTeamModal = ref(false);
 const showOpponentTeamModal = ref(false);
 const modalLoading = ref(false);
+const showDatePicker = ref(false);
+const showStartTimePicker = ref(false);
+const showEndTimePicker = ref(false);
 
-// Fetch Functions
-const fetchSeasons = async () => {
-    try {
-        const res = await masterDataService.seasons.getAll();
-        seasons.value = res.data.result;
-    } catch (error) {
-        console.error('Failed to load seasons:', error);
-    }
+const fetchAllMasterData = async () => {
+    await masterDataStore.fetchAll();
 };
 
-const fetchFields = async () => {
+const fetchGame = async () => {
     try {
-        const res = await masterDataService.fields.getAll();
-        fields.value = res.data.result;
+        const response = await gameService.getGameById(route.params.id);
+        const game = response.data.result;
+        formData.value = {
+            gameDate: game.gameDate,
+            startTime: game.startTime || '',
+            endTime: game.endTime || '',
+            season_id: game.Z00_season_id,
+            team_id: game.Z00_team_id,
+            opponent_team_id: game.Z00_team_id_enemy,
+            field_id: game.Z00_field_id,
+            homeAway: game.homeAway,
+            score: game.score,
+            enemyScore: game.enemyScore,
+            memo: game.memo || ''
+        };
     } catch (error) {
-        console.error('Failed to load fields:', error);
+        console.error('Failed to fetch game:', error);
     }
-};
-
-const fetchMyTeams = async () => {
-    try {
-        const res = await masterDataService.teams.getAll({ teamtype: 1 });
-        myTeams.value = res.data.result;
-    } catch (error) {
-        console.error('Failed to load my teams:', error);
-    }
-};
-
-const fetchOpponentTeams = async () => {
-    try {
-        const res = await masterDataService.teams.getAll({ teamtype: 2 });
-        opponentTeams.value = res.data.result;
-    } catch (error) {
-        console.error('Failed to load opponent teams:', error);
-    }
-};
-
-const fetchAllData = async () => {
-  await Promise.all([
-    fetchSeasons(),
-    fetchFields(),
-    fetchMyTeams(),
-    fetchOpponentTeams()
-  ]);
 };
 
 const handleSubmit = async () => {
@@ -99,86 +85,60 @@ const handleSubmit = async () => {
       memo: formData.value.memo
     };
 
-    const response = await gameService.createGame(payload);
-    router.push({
-      name: 'BattingRecords',
-      query: { game_id: response.data.id, new: 'true' }
-    });
+    if (route.params.id) {
+        await gameService.updateGame(route.params.id, payload);
+        router.push({ name: 'GameDetail', params: { id: route.params.id } });
+    } else {
+        const response = await gameService.createGame(payload);
+        router.push({
+            name: 'GameDetail',
+            params: { id: response.data.result.id }
+        });
+    }
   } catch (error) {
-    console.error('Failed to create game:', error);
+    console.error('Failed to save game:', error);
   } finally {
     isSubmitting.value = false;
   }
 };
 
-// Add Handlers
-const handleAddSeason = async (name) => {
+const handleQuickAdd = async (type, name) => {
   modalLoading.value = true;
   try {
-    const res = await masterDataService.seasons.create({ name });
-    await fetchSeasons(); // Refresh list
-    // 取 response 的 result.id
-    if (res.data?.result?.id) {
-        formData.value.season_id = res.data.result.id; 
+    let response;
+    if (type === 'season') {
+      response = await masterDataService.seasons.create({ name });
+      masterDataStore.addSeason(response.data.result);
+      formData.value.season_id = response.data.result.id;
+      showSeasonModal.value = false;
+    } else if (type === 'field') {
+      response = await masterDataService.fields.create({ name });
+      masterDataStore.addField(response.data.result);
+      formData.value.field_id = response.data.result.id;
+      showFieldModal.value = false;
+    } else if (type === 'myTeam') {
+      response = await masterDataService.teams.create({ name, teamtype: 1 });
+      masterDataStore.addMyTeam(response.data.result);
+      formData.value.team_id = response.data.result.id;
+      showMyTeamModal.value = false;
+    } else if (type === 'opponentTeam') {
+      response = await masterDataService.teams.create({ name, teamtype: 2 });
+      masterDataStore.addOpponentTeam(response.data.result);
+      formData.value.opponent_team_id = response.data.result.id;
+      showOpponentTeamModal.value = false;
     }
-    showSeasonModal.value = false;
   } catch (error) {
-    console.error('Failed to add season:', error);
+    console.error('Quick add failed:', error);
   } finally {
     modalLoading.value = false;
   }
 };
 
-const handleAddField = async (name) => {
-  modalLoading.value = true;
-  try {
-    const res = await masterDataService.fields.create({ name });
-    await fetchFields(); // Refresh list
-    if (res.data?.result?.id) {
-        formData.value.field_id = res.data.result.id;
-    }
-    showFieldModal.value = false;
-  } catch (error) {
-    console.error('Failed to add field:', error);
-  } finally {
-    modalLoading.value = false;
+onMounted(async () => {
+  fetchAllMasterData();
+  if (route.params.id) {
+    fetchGame();
   }
-};
-
-const handleAddMyTeam = async (name) => {
-  modalLoading.value = true;
-  try {
-    const res = await masterDataService.teams.create({ name, teamtype: 1 });
-    await fetchMyTeams(); // Refresh list
-    if (res.data?.result?.id) {
-        formData.value.team_id = res.data.result.id;
-    }
-    showMyTeamModal.value = false;
-  } catch (error) {
-    console.error('Failed to add my team:', error);
-  } finally {
-    modalLoading.value = false;
-  }
-};
-
-const handleAddOpponentTeam = async (name) => {
-  modalLoading.value = true;
-  try {
-    const res = await masterDataService.teams.create({ name, teamtype: 2 });
-    await fetchOpponentTeams(); // Refresh list
-    if (res.data?.result?.id) {
-        formData.value.opponent_team_id = res.data.result.id;
-    }
-    showOpponentTeamModal.value = false;
-  } catch (error) {
-    console.error('Failed to add opponent team:', error);
-  } finally {
-    modalLoading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchAllData();
 });
 </script>
 
@@ -334,32 +294,93 @@ onMounted(() => {
               <label class="block text-sm font-medium text-gray-400 ml-1">
                 {{ t('games.date') }}
               </label>
-              <input 
-                v-model="formData.gameDate"
-                type="date" 
-                class="input-field"
-              >
+              <div class="relative group">
+                <input 
+                  type="text"
+                  v-model="formData.gameDate"
+                  @focus="showDatePicker = true"
+                  placeholder="YYYY-MM-DD"
+                  class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
+                  autocomplete="off"
+                  readonly
+                >
+                <div 
+                  class="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer text-gray-500 group-hover:text-blue-400 transition-colors"
+                  @click="showDatePicker = !showDatePicker"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                
+                <!-- Date Picker Popup -->
+                <div v-if="showDatePicker" class="absolute top-full left-0 z-50 mt-2 shadow-2xl">
+                  <DatePicker 
+                    v-model="formData.gameDate" 
+                    @close="showDatePicker = false"
+                  />
+                </div>
+                <!-- Invisible overlay to close dropdown -->
+                <div v-if="showDatePicker" class="fixed inset-0 z-40" @click="showDatePicker = false"></div>
+              </div>
             </div>
             
              <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-400 ml-1">
                 {{ t('games.startTime') }}
               </label>
-              <input 
-                v-model="formData.startTime"
-                type="time" 
-                class="input-field"
-              >
+              <div class="relative group">
+                <input 
+                  type="text"
+                  v-model="formData.startTime"
+                  @focus="showStartTimePicker = true"
+                  placeholder="HH:mm"
+                  class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
+                  autocomplete="off"
+                  readonly
+                >
+                <div 
+                  class="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer text-gray-500 group-hover:text-blue-400 transition-colors"
+                  @click="showStartTimePicker = !showStartTimePicker"
+                >
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div v-if="showStartTimePicker" class="absolute top-full left-0 z-50 mt-2 shadow-2xl">
+                    <TimePicker v-model="formData.startTime" @close="showStartTimePicker = false" />
+                </div>
+                <div v-if="showStartTimePicker" class="fixed inset-0 z-40" @click="showStartTimePicker = false"></div>
+              </div>
             </div>
+
              <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-400 ml-1">
                 {{ t('games.endTime') }}
               </label>
-              <input 
-                v-model="formData.endTime"
-                type="time" 
-                class="input-field"
-              >
+              <div class="relative group">
+                <input 
+                  type="text"
+                  v-model="formData.endTime"
+                  @focus="showEndTimePicker = true"
+                  placeholder="HH:mm"
+                  class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
+                  autocomplete="off"
+                  readonly
+                >
+                <div 
+                  class="absolute inset-y-0 right-0 flex items-center px-3 cursor-pointer text-gray-500 group-hover:text-blue-400 transition-colors"
+                  @click="showEndTimePicker = !showEndTimePicker"
+                >
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div v-if="showEndTimePicker" class="absolute top-full left-0 z-50 mt-2 shadow-2xl">
+                    <TimePicker v-model="formData.endTime" @close="showEndTimePicker = false" />
+                </div>
+                <div v-if="showEndTimePicker" class="fixed inset-0 z-40" @click="showEndTimePicker = false"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -466,7 +487,7 @@ onMounted(() => {
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showSeasonModal = false"
-      @confirm="handleAddSeason"
+      @confirm="(name) => handleQuickAdd('season', name)"
     />
 
     <QuickAddModal
@@ -475,7 +496,7 @@ onMounted(() => {
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showFieldModal = false"
-      @confirm="handleAddField"
+      @confirm="(name) => handleQuickAdd('field', name)"
     />
 
     <QuickAddModal
@@ -484,7 +505,7 @@ onMounted(() => {
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showMyTeamModal = false"
-      @confirm="handleAddMyTeam"
+      @confirm="(name) => handleQuickAdd('myTeam', name)"
     />
 
     <QuickAddModal
@@ -493,7 +514,7 @@ onMounted(() => {
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showOpponentTeamModal = false"
-      @confirm="handleAddOpponentTeam"
+      @confirm="(name) => handleQuickAdd('opponentTeam', name)"
     />
   </div>
 </template>

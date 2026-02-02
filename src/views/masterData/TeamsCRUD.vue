@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import masterDataService from '@/services/masterDataService';
 import { useConfirm } from '@/composables/useConfirm';
+import { useMasterDataStore } from '@/stores/masterData';
 
 const { t } = useI18n();
 const { showConfirm } = useConfirm();
+const masterDataStore = useMasterDataStore();
 
 const items = ref([]);
 const isLoading = ref(true);
@@ -59,6 +61,7 @@ const handleCreate = async () => {
     newItemName.value = '';
     newItemType.value = '2';
     showCreateModal.value = false;
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to create team:', error);
@@ -86,6 +89,7 @@ const handleUpdate = async () => {
         teamtype: editItemType.value
     });
     cancelEdit();
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to update team:', error);
@@ -98,6 +102,7 @@ const handleDelete = async (id) => {
   
   try {
     await masterDataService.teams.delete(id);
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to delete team:', error);

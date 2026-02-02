@@ -3,9 +3,11 @@ import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import masterDataService from '@/services/masterDataService';
 import { useConfirm } from '@/composables/useConfirm';
+import { useMasterDataStore } from '@/stores/masterData';
 
 const { t } = useI18n();
 const { showConfirm } = useConfirm();
+const masterDataStore = useMasterDataStore();
 
 const items = ref([]);
 const isLoading = ref(true);
@@ -44,6 +46,7 @@ const handleCreate = async () => {
     await masterDataService.fields.create({ name: newItemName.value });
     newItemName.value = '';
     showCreateModal.value = false;
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to create field:', error);
@@ -65,6 +68,7 @@ const handleUpdate = async () => {
   try {
     await masterDataService.fields.update(editId.value, { name: editItemName.value });
     cancelEdit();
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to update field:', error);
@@ -77,6 +81,7 @@ const handleDelete = async (id) => {
 
   try {
     await masterDataService.fields.delete(id);
+    masterDataStore.clearCache();
     await fetchItems();
   } catch (error) {
     console.error('Failed to delete field:', error);

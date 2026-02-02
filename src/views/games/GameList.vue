@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n';
 import gameService from '@/services/gameService';
 import masterDataService from '@/services/masterDataService';
 import DateRangePicker from '@/components/DateRangePicker.vue';
+import { useMasterDataStore } from '@/stores/masterData';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -14,11 +16,8 @@ const isLoading = ref(true);
 const currentPage = ref(1);
 const totalPages = ref(1);
 
-// Master Data for Search
-const seasons = ref([]);
-const fields = ref([]);
-const myTeams = ref([]);
-const opponentTeams = ref([]);
+const masterDataStore = useMasterDataStore();
+const { seasons, fields, myTeams, opponentTeams } = storeToRefs(masterDataStore);
 
 // Search State
 const isSearchOpen = ref(true);
@@ -40,20 +39,7 @@ const updateDateRange = (newRange) => {
 };
 
 const fetchMasterData = async () => {
-    try {
-        const [seasonsRes, fieldsRes, myTeamsRes, opponentTeamsRes] = await Promise.all([
-            masterDataService.seasons.getAll(),
-            masterDataService.fields.getAll(),
-            masterDataService.teams.getAll({ teamtype: 1 }),
-            masterDataService.teams.getAll({ teamtype: 2 })
-        ]);
-        seasons.value = seasonsRes.data.result;
-        fields.value = fieldsRes.data.result;
-        myTeams.value = myTeamsRes.data.result;
-        opponentTeams.value = opponentTeamsRes.data.result;
-    } catch (error) {
-        console.error('Failed to load master data:', error);
-    }
+    await masterDataStore.fetchAll();
 };
 
 const fetchGames = async (page = 1) => {
@@ -123,9 +109,9 @@ const getResultBadgeColor = (result) => {
 
 const getResultText = (result) => {
     switch (Number(result)) {
-    case 1: return 'WIN';
-    case 2: return 'LOSS';
-    case 3: return 'TIE';
+    case 1: return t('games.win');
+    case 2: return t('games.loss');
+    case 3: return t('games.tie');
     default: return '-';
   }
 }
@@ -136,6 +122,19 @@ const formatDateDisplay = (start, end) => {
     if (!start && end) return `~ ${end}`;
     if (start === end) return start;
     return `${start} ~ ${end}`;
+};
+
+const formatBattingSummary = (batterResult) => {
+    if (!batterResult) return '';
+    const r = batterResult;
+    const hits = (Number(r.single) || 0) + (Number(r.double) || 0) + (Number(r.triple) || 0) + (Number(r.hr) || 0);
+    let text = `${r.at_bats || 0} - ${hits} `;
+    
+    if (Number(r.hr) > 0) text += `, ${r.hr}${t('basic.HR')}`;
+    if (Number(r.bb) > 0) text += `, ${r.bb}${t('basic.BB')}`;
+    if (Number(r.hbp) > 0) text += `, ${r.hbp}${t('basic.HBP')}`;
+    
+    return text;
 };
 
 onMounted(() => {
@@ -185,7 +184,7 @@ onMounted(() => {
                     <label class="text-sm text-gray-400 ml-1">{{ t('games.season') }}</label>
                     <div class="relative">
                         <select v-model="searchForm.Z00_season_id" class="input-field appearance-none cursor-pointer">
-                            <option value="">全部賽季</option>
+                            <option value="">{{ t('games.all') }}</option>
                             <option v-for="s in seasons" :key="s.id" :value="s.id">{{ s.name }}</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -199,7 +198,7 @@ onMounted(() => {
                     <label class="text-sm text-gray-400 ml-1">{{ t('games.myTeam') }}</label>
                      <div class="relative">
                         <select v-model="searchForm.Z00_team_id" class="input-field appearance-none cursor-pointer">
-                            <option value="">全部我方球隊</option>
+                            <option value="">{{ t('games.all') }}</option>
                             <option v-for="t in myTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
                         </select>
                          <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -213,7 +212,7 @@ onMounted(() => {
                     <label class="text-sm text-gray-400 ml-1">{{ t('games.opponentTeam') }}</label>
                      <div class="relative">
                         <select v-model="searchForm.Z00_team_id_enemy" class="input-field appearance-none cursor-pointer">
-                            <option value="">全部對手球隊</option>
+                            <option value="">{{ t('games.all') }}</option>
                             <option v-for="t in opponentTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
                         </select>
                          <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -227,7 +226,7 @@ onMounted(() => {
                     <label class="text-sm text-gray-400 ml-1">{{ t('games.field') }}</label>
                      <div class="relative">
                         <select v-model="searchForm.Z00_field_id" class="input-field appearance-none cursor-pointer">
-                            <option value="">全部場地</option>
+                            <option value="">{{ t('games.all') }}</option>
                              <option v-for="f in fields" :key="f.id" :value="f.id">{{ f.name }}</option>
                         </select>
                          <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -238,13 +237,13 @@ onMounted(() => {
 
                 <!-- Game Result -->
                  <div class="space-y-1">
-                    <label class="text-sm text-gray-400 ml-1">比賽結果</label>
+                    <label class="text-sm text-gray-400 ml-1">{{ t('games.gameResult') }}</label>
                      <div class="relative">
                         <select v-model="searchForm.gameResult" class="input-field appearance-none cursor-pointer">
-                            <option value="">全部結果</option>
-                            <option value="1">WIN (勝)</option>
-                            <option value="2">LOSS (敗)</option>
-                            <option value="3">TIE (和)</option>
+                            <option value="">{{ t('games.all') }}</option>
+                            <option value="1">{{ t('games.win') }}</option>
+                            <option value="2">{{ t('games.loss') }}</option>
+                            <option value="3">{{ t('games.tie') }}</option>
                         </select>
                          <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -365,6 +364,13 @@ onMounted(() => {
                 <div class="mt-1">
                     <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-400 border border-gray-600">後攻</span>
                 </div>
+            </div>
+        </div>
+
+        <!-- Batting Summary -->
+        <div v-if="game.batterResult" class="px-2 mb-4 relative z-10">
+            <div class="text-[11px] leading-relaxed text-blue-300 font-medium bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
+                {{ formatBattingSummary(game.batterResult) }}
             </div>
         </div>
         
