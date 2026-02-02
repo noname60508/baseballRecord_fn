@@ -2,8 +2,8 @@ import api from './api';
 
 export default {
     // 取得比賽列表
-    getGames() {
-        return api.get('/B00/B10/B11_gamesController');
+    getGames(params) {
+        return api.get('/B00/B10/B11_gamesController', { params });
     },
 
     // 建立比賽

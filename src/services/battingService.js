@@ -2,8 +2,8 @@ import api from './api';
 
 export default {
     // 取得打擊紀錄列表
-    getBattingRecords() {
-        return api.get('/B00/B20/B21_battingStatistics');
+    getBattingRecords(params) {
+        return api.get('/B00/B20/B21_battingStatistics', { params });
     },
 
     // 建立打擊紀錄
@@ -12,7 +12,7 @@ export default {
     },
 
     // 取得打擊統計數據
-    getBattingStatistics() {
-        return api.get('/B00/B20/B21_battingStatistics/dataStatistics');
+    getBattingStatistics(params) {
+        return api.get('/B00/B20/B21_battingStatistics/dataStatistics', { params });
     }
 };

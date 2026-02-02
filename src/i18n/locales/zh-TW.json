@@ -39,10 +39,19 @@
         "team": "球隊",
         "season": "賽季",
         "field": "場地",
-        "date": "日期",
+        "myTeam": "我方球隊",
+        "opponentTeam": "對方球隊",
+        "startTime": "開始時間",
+        "endTime": "結束時間",
+        "homeAway": "先/後攻",
+        "firstAttack": "先攻",
+        "secondAttack": "後攻",
+        "memo": "備註",
         "opponent": "對手",
-        "score": "比數",
-        "quickAdd": "快速新增"
+        "score": "比分",
+        "quickAdd": "快速新增",
+        "date": "日期",
+        "search": "搜尋"
     },
     "batting": {
         "title": "打擊成績",

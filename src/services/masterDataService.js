@@ -3,8 +3,8 @@ import api from './api';
 export default {
     // 球隊 CRUD
     teams: {
-        getAll() {
-            return api.get('/Z00/Z00_teamsController');
+        getAll(params) {
+            return api.get('/Z00/Z00_teamsController', { params });
         },
         create(data) {
             return api.post('/Z00/Z00_teamsController', data);

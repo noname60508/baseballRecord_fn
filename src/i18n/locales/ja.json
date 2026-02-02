@@ -39,10 +39,19 @@
         "team": "チーム",
         "season": "シーズン",
         "field": "球場",
-        "date": "日付",
+        "myTeam": "自チーム",
+        "opponentTeam": "相手チーム",
+        "startTime": "開始時間",
+        "endTime": "終了時間",
+        "homeAway": "先攻/後攻",
+        "firstAttack": "先攻",
+        "secondAttack": "後攻",
+        "memo": "備考",
         "opponent": "対戦相手",
         "score": "スコア",
-        "quickAdd": "クイック追加"
+        "quickAdd": "クイック追加",
+        "date": "日付",
+        "search": "検索"
     },
     "batting": {
         "title": "打撃成績",
