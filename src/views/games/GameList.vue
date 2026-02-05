@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import gameService from '@/services/gameService';
 import masterDataService from '@/services/masterDataService';
 import DateRangePicker from '@/components/DateRangePicker.vue';
 import { useMasterDataStore } from '@/stores/masterData';
+import { useGameListStore } from '@/stores/gameList';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter();
@@ -13,22 +14,10 @@ const { t } = useI18n();
 
 const games = ref([]);
 const isLoading = ref(true);
-const currentPage = ref(1);
+const gameListStore = useGameListStore();
+const { searchForm, currentPage, isSearchOpen } = storeToRefs(gameListStore);
 const totalPages = ref(1);
-
-const masterDataStore = useMasterDataStore();
-const { seasons, fields, myTeams, opponentTeams } = storeToRefs(masterDataStore);
-
-// Search State
-const isSearchOpen = ref(true);
-const searchForm = ref({
-  Z00_season_id: '',
-  Z00_team_id: '',
-  Z00_team_id_enemy: '',
-  Z00_field_id: '',
-  gameResult: '',
-  gameDate: [null, null]
-});
+const pageInput = ref(currentPage.value);
 
 // Date Picker State
 const showDatePicker = ref(false);
@@ -47,7 +36,7 @@ const fetchGames = async (page = 1) => {
   try {
     const params = {
       page,
-      paginate_rows: 12,
+      paginate_rows: 6,
       ...searchForm.value
     };
 
@@ -65,13 +54,38 @@ const fetchGames = async (page = 1) => {
     const response = await gameService.getGames(params);
     games.value = response.data.result.data || [];
     totalPages.value = response.data.result.total_pages || 1;
-    currentPage.value = page;
+    gameListStore.setCurrentPage(page);
   } catch (error) {
     console.error('Failed to fetch games:', error);
   } finally {
     isLoading.value = false;
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
+
+watch(currentPage, (val) => {
+  pageInput.value = val;
+});
+
+const handlePageJump = () => {
+    let page = parseInt(pageInput.value);
+    if (isNaN(page)) {
+        pageInput.value = currentPage.value;
+        return;
+    }
+    if (page < 1) page = 1;
+    if (page > totalPages.value) page = totalPages.value;
+    
+    if (page !== currentPage.value) {
+        fetchGames(page);
+    } else {
+        pageInput.value = currentPage.value; // Reset if same
+    }
+};
+
+const masterDataStore = useMasterDataStore();
+const { seasons, fields, myTeams, opponentTeams } = storeToRefs(masterDataStore);
 
 const handleSearch = () => {
     fetchGames(1);
@@ -86,7 +100,7 @@ const clearSearch = () => {
         gameResult: '',
         gameDate: [null, null]
     };
-    fetchGames(1);
+    // Removed fetchGames(1) - only clear fields
 };
 
 const getGameColor = (result) => {
@@ -126,20 +140,22 @@ const formatDateDisplay = (start, end) => {
 
 const formatBattingSummary = (batterResult) => {
     if (!batterResult) return '';
+    console.log(batterResult);
     const r = batterResult;
-    const hits = (Number(r.single) || 0) + (Number(r.double) || 0) + (Number(r.triple) || 0) + (Number(r.hr) || 0);
-    let text = `${r.at_bats || 0} - ${hits} `;
+    const hits = (Number(r.single) || 0) + (Number(r.double) || 0) + (Number(r.triple) || 0) + (Number(r.HR) || 0);
+    let text = `${r.AB || 0} - ${hits} `;
     
-    if (Number(r.hr) > 0) text += `, ${r.hr}${t('basic.HR')}`;
-    if (Number(r.bb) > 0) text += `, ${r.bb}${t('basic.BB')}`;
-    if (Number(r.hbp) > 0) text += `, ${r.hbp}${t('basic.HBP')}`;
+    if (Number(r.HR) > 0) text += `, ${r.HR}${t('basic.HR')}`;
+    if (Number(r.BB) > 0) text += `, ${r.BB}${t('basic.BB')}`;
+    if (Number(r.HBP) > 0) text += `, ${r.HBP}${t('basic.HBP')}`;
+    console.log(text);
     
     return text;
 };
 
 onMounted(() => {
   fetchMasterData();
-  fetchGames();
+  fetchGames(currentPage.value);
 });
 </script>
 
@@ -340,12 +356,9 @@ onMounted(() => {
                 <div class="font-bold text-4xl text-white mb-1 drop-shadow-md font-mono">
                      {{ game.homeAway === 1 ? game.score : game.enemyScore }}
                 </div>
-                <div class="text-xs text-gray-400 font-medium uppercase tracking-wider truncate max-w-[100px] mx-auto">
-                     <span v-if="game.homeAway === 1">{{ game.teamName }}</span>
-                     <span v-else>{{ game.teamNameEnemy }}</span>
-                </div>
-                <div class="mt-1">
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-400 border border-gray-600">先攻</span>
+                <div class="text-xs font-medium uppercase tracking-wider truncate max-w-[100px] mx-auto">
+                     <span v-if="game.homeAway === 1" class="text-blue-400 font-bold underline underline-offset-4 decoration-blue-500/50">{{ game.teamName }}</span>
+                     <span v-else class="text-gray-400">{{ game.teamNameEnemy }}</span>
                 </div>
             </div>
 
@@ -357,12 +370,9 @@ onMounted(() => {
                 <div class="font-bold text-4xl text-white mb-1 drop-shadow-md font-mono">
                     {{ game.homeAway === 1 ? game.enemyScore : game.score }}
                 </div>
-                 <div class="text-xs text-gray-400 font-medium uppercase tracking-wider truncate max-w-[100px] mx-auto">
-                    <span v-if="game.homeAway === 1">{{ game.teamNameEnemy }}</span>
-                    <span v-else>{{ game.teamName }}</span>
-                </div>
-                <div class="mt-1">
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-400 border border-gray-600">後攻</span>
+                 <div class="text-xs font-medium uppercase tracking-wider truncate max-w-[100px] mx-auto">
+                    <span v-if="game.homeAway === 1" class="text-gray-400">{{ game.teamNameEnemy }}</span>
+                    <span v-else class="text-blue-400 font-bold underline underline-offset-4 decoration-blue-500/50">{{ game.teamName }}</span>
                 </div>
             </div>
         </div>
@@ -389,23 +399,58 @@ onMounted(() => {
     </div>
 
     <!-- Pagination Controls -->
-    <div v-if="totalPages > 1" class="flex justify-center mt-8 space-x-2">
+    <div v-if="totalPages > 1" class="flex justify-center mt-8 items-center space-x-2">
+      <!-- First Page -->
+      <button 
+        @click="fetchGames(1)" 
+        :disabled="currentPage === 1"
+        class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :title="t('common.firstPage')"
+      >
+        &laquo;
+      </button>
+
+      <!-- Prev -->
       <button 
         @click="fetchGames(currentPage - 1)" 
         :disabled="currentPage === 1"
-        class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :title="t('common.prev')"
       >
-        Prev
+        &lt;
       </button>
-      <span class="px-4 py-2 text-gray-400 font-medium flex items-center">
-        {{ currentPage }} / {{ totalPages }}
-      </span>
+
+      <!-- Page Jump Input -->
+      <div class="flex items-center bg-gray-900 border border-gray-700/50 rounded-lg px-2 py-1.5 shadow-inner ring-1 ring-white/5">
+        <input 
+          v-model="pageInput"
+          type="text" 
+          class="w-8 bg-transparent text-center text-blue-400 border-none focus:ring-0 p-0 font-bold text-sm"
+          @keyup.enter="handlePageJump"
+          @blur="handlePageJump"
+        >
+        <span class="text-gray-500 mx-1.5 text-xs font-light italic">/</span>
+        <span class="text-gray-300 text-sm font-semibold pr-1">{{ totalPages }}</span>
+      </div>
+
+      <!-- Next -->
       <button 
         @click="fetchGames(currentPage + 1)" 
         :disabled="currentPage === totalPages"
-        class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :title="t('common.next')"
       >
-        Next
+        &gt;
+      </button>
+
+      <!-- Last Page -->
+      <button 
+        @click="fetchGames(totalPages)" 
+        :disabled="currentPage === totalPages"
+        class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :title="t('common.lastPage')"
+      >
+        &raquo;
       </button>
     </div>
   </div>

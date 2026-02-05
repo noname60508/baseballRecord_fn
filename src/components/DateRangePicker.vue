@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue: {
@@ -11,7 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'close']);
 
 // Date Utils
-const daysOfWeek = ['日', '一', '二', '三', '四', '五', '六'];
+const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const today = new Date();
 const currentYear = ref(today.getFullYear());
 const currentMonth = ref(today.getMonth()); // 0-11
@@ -24,7 +27,13 @@ const hoverDate = ref(null);
 watch(() => props.modelValue, (newVal) => {
     startDate.value = newVal[0] ? new Date(newVal[0]) : null;
     endDate.value = newVal[1] ? new Date(newVal[1]) : null;
-});
+    
+    // If we have a start date, jump the calendar view to that month
+    if (startDate.value) {
+        currentYear.value = startDate.value.getFullYear();
+        currentMonth.value = startDate.value.getMonth();
+    }
+}, { immediate: true });
 
 const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
@@ -144,13 +153,39 @@ const nextMonth = () => {
 </script>
 
 <template>
-  <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-4 w-80 user-select-none" @click.stop>
+  <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-4 w-80 max-w-[calc(100vw-2rem)] user-select-none" @click.stop>
+    <!-- Selection Status -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700/50">
+        <div class="space-y-1">
+            <p class="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{{ t('games.dateRange') }}</p>
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium" :class="startDate ? 'text-blue-400' : 'text-gray-600'">
+                    {{ startDate ? formatDateStr(startDate) : t('common.noData') }}
+                </span>
+                <span class="text-gray-600">→</span>
+                <span class="text-sm font-medium" :class="endDate ? 'text-blue-400' : 'text-gray-600'">
+                    {{ endDate ? formatDateStr(endDate) : '...' }}
+                </span>
+            </div>
+        </div>
+        <button 
+            v-if="startDate" 
+            @click="() => { startDate = null; endDate = null; hoverDate = null; }"
+            class="p-1.5 hover:bg-red-500/10 text-gray-500 hover:text-red-400 rounded-lg transition-colors"
+            title="Clear Selection"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+    </div>
+
     <!-- Header -->
     <div class="flex justify-between items-center mb-4">
         <button @click="prevMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
-        <div class="font-bold text-white">{{ currentYear }}年 {{ currentMonth + 1 }}月</div>
+        <div class="font-bold text-white">{{ currentYear }}{{ t('basic.year') }} {{ currentMonth + 1 }}{{ t('basic.month') }}</div>
         <button @click="nextMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
@@ -158,8 +193,8 @@ const nextMonth = () => {
 
     <!-- Interface -->
     <div class="grid grid-cols-7 gap-1 mb-2">
-        <div v-for="day in daysOfWeek" :key="day" class="text-center text-xs font-medium text-gray-500 py-1">
-            {{ day }}
+        <div v-for="dayKey in daysOfWeek" :key="dayKey" class="text-center text-xs font-medium text-gray-500 py-1">
+            {{ t(`week.${dayKey}`) }}
         </div>
     </div>
     
@@ -181,8 +216,8 @@ const nextMonth = () => {
     </div>
     
     <!-- Footer Help Text -->
-    <div class="mt-3 text-center text-xs text-gray-500 border-t border-gray-700 pt-2">
-        {{ !startDate ? '請點選開始日期' : (!endDate ? '請點選結束日期 (可同日)' : '已選取範圍') }}
+    <div class="mt-3 text-center text-xs py-2 bg-gray-900/50 rounded-lg border border-gray-700/50" :class="!startDate ? 'text-gray-500' : 'text-blue-400 font-medium'">
+        {{ !startDate ? t('games.selectStartDate') : (!endDate ? t('games.selectEndDate') : t('games.rangeSelected')) }}
     </div>
   </div>
 </template>

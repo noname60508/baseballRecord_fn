@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import masterDataService from '@/services/masterDataService';
+import resultOptionsService from '@/services/resultOptionsService';
 
 export const useMasterDataStore = defineStore('masterData', {
     state: () => ({
@@ -7,9 +8,15 @@ export const useMasterDataStore = defineStore('masterData', {
         fields: [],
         myTeams: [],
         opponentTeams: [],
+        matchupResults: [],
+        locations: [],
+        ballTypes: [],
         isLoaded: false,
         isLoading: false,
-        _fetchPromise: null // To handle parallel calls correctly
+        isResultOptionsLoaded: false,
+        isResultOptionsLoading: false,
+        _fetchPromise: null, // To handle parallel calls correctly
+        _fetchResultOptionsPromise: null
     }),
 
     actions: {
@@ -49,6 +56,39 @@ export const useMasterDataStore = defineStore('masterData', {
             return this._fetchPromise;
         },
 
+        async fetchResultOptions(force = false) {
+            if (this.isResultOptionsLoaded && !force) return;
+
+            if (this.isResultOptionsLoading && this._fetchResultOptionsPromise) {
+                return this._fetchResultOptionsPromise;
+            }
+
+            this.isResultOptionsLoading = true;
+            this._fetchResultOptionsPromise = (async () => {
+                try {
+                    const [matchupResultsRes, locationsRes, ballTypesRes] = await Promise.all([
+                        resultOptionsService.getMatchupResults(),
+                        resultOptionsService.getLocations(),
+                        resultOptionsService.getBallTypes()
+                    ]);
+
+                    this.matchupResults = matchupResultsRes.data.result || [];
+                    this.locations = locationsRes.data.result || [];
+                    this.ballTypes = ballTypesRes.data.result || [];
+
+                    this.isResultOptionsLoaded = true;
+                } catch (error) {
+                    console.error('Failed to load result options into store:', error);
+                    throw error;
+                } finally {
+                    this.isResultOptionsLoading = false;
+                    this._fetchResultOptionsPromise = null;
+                }
+            })();
+
+            return this._fetchResultOptionsPromise;
+        },
+
         // Handlers for quick-add to keep cache in sync (Put new items at top)
         addSeason(season) {
             this.seasons.unshift(season);
@@ -70,6 +110,13 @@ export const useMasterDataStore = defineStore('masterData', {
             this.fields = [];
             this.myTeams = [];
             this.opponentTeams = [];
+        },
+
+        clearResultOptionsCache() {
+            this.isResultOptionsLoaded = false;
+            this.matchupResults = [];
+            this.locations = [];
+            this.ballTypes = [];
         }
     }
 });

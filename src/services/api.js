@@ -55,9 +55,15 @@ api.interceptors.response.use(
 
         // 處理 401 未授權錯誤
         if (error.response && error.response.status === 401) {
-            // 可以在此處理自動登出邏輯
-            // localStorage.removeItem('auth_token');
-            // window.location.href = '/login';
+            // 清除本地儲存的驗證資
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('userId');
+
+            // 跳轉至登入頁面
+            // 使用 window.location.href 以避免循環依賴或是 Store 狀態同步問題
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

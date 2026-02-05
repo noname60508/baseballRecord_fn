@@ -15,7 +15,7 @@ const route = useRoute();
 const { t } = useI18n();
 
 const formData = ref({
-  gameDate: new Date().toISOString().split('T')[0],
+  gameDate: '',
   startTime: '',
   endTime: '',
   season_id: '',
@@ -299,7 +299,7 @@ onMounted(async () => {
                   type="text"
                   v-model="formData.gameDate"
                   @focus="showDatePicker = true"
-                  placeholder="YYYY-MM-DD"
+                  placeholder=""
                   class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
                   autocomplete="off"
                   readonly
@@ -334,7 +334,7 @@ onMounted(async () => {
                   type="text"
                   v-model="formData.startTime"
                   @focus="showStartTimePicker = true"
-                  placeholder="HH:mm"
+                  placeholder=""
                   class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
                   autocomplete="off"
                   readonly
@@ -363,7 +363,7 @@ onMounted(async () => {
                   type="text"
                   v-model="formData.endTime"
                   @focus="showEndTimePicker = true"
-                  placeholder="HH:mm"
+                  placeholder=""
                   class="input-field pr-10 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
                   autocomplete="off"
                   readonly
@@ -391,60 +391,61 @@ onMounted(async () => {
             {{ t('games.score') }}
           </h2>
           
-          <div class="relative bg-gray-900/40 rounded-2xl border border-white/5 overflow-hidden p-6 md:p-8">
-             <!-- Scoreboard texture -->
-             <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 4px 4px;"></div>
-             
-             <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
-                <!-- My Team Side -->
-                <div class="flex-1 flex flex-col items-center gap-4 w-full">
-                   <div 
-                      @click="formData.homeAway = 1"
-                      class="cursor-pointer px-4 py-1.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ring-2 ring-offset-2 ring-offset-gray-900"
-                      :class="formData.homeAway === 1 ? 'bg-blue-600 text-white ring-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-gray-800 text-gray-500 ring-transparent hover:bg-gray-700'"
-                   >
-                      <span v-if="formData.homeAway === 1">🗡️ {{ t('games.firstAttack') }}</span>
-                      <span v-else>🛡️ {{ t('games.secondAttack') }}</span>
-                   </div>
-                   
-                   <div class="text-center w-full">
-                      <label class="block text-sm font-bold text-gray-400 mb-2">我方</label>
-                      <input 
-                        v-model.number="formData.score"
-                        type="number" 
-                        min="0"
-                        class="w-full max-w-[140px] h-32 text-center text-6xl font-black bg-gray-800 border-4 border-gray-700 rounded-3xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all shadow-inner text-white font-mono no-spinner"
-                      >
-                   </div>
-                </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Home/Away Selection -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-400 ml-1">
+                {{ t('games.homeAway') }}
+              </label>
+              <div class="flex gap-2">
+                <button 
+                  type="button"
+                  @click="formData.homeAway = 1"
+                  class="flex-1 px-4 py-2 rounded-xl border border-white/10 font-bold transition-all duration-300"
+                  :class="formData.homeAway === 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
+                >
+                  🗡️ {{ t('games.firstAttack') }}
+                </button>
+                <button 
+                  type="button"
+                  @click="formData.homeAway = 2"
+                  class="flex-1 px-4 py-2 rounded-xl border border-white/10 font-bold transition-all duration-300"
+                  :class="formData.homeAway === 2 ? 'bg-red-600 text-white shadow-lg shadow-red-500/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'"
+                >
+                  🛡️ {{ t('games.secondAttack') }}
+                </button>
+              </div>
+            </div>
 
-                <!-- VS Divider -->
-                <div class="text-gray-600 font-black text-4xl italic opacity-30 select-none">
-                   VS
-                </div>
+            <!-- Empty space for grid alignment or add something else here -->
+            <div class="hidden md:block"></div>
 
-                 <!-- Opponent Team Side -->
-                <div class="flex-1 flex flex-col items-center gap-4 w-full">
-                   <div 
-                      @click="formData.homeAway = 2"
-                      class="cursor-pointer px-4 py-1.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ring-2 ring-offset-2 ring-offset-gray-900"
-                      :class="formData.homeAway === 2 ? 'bg-red-600 text-white ring-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'bg-gray-800 text-gray-500 ring-transparent hover:bg-gray-700'"
-                   >
-                      <span v-if="formData.homeAway === 2">🗡️ {{ t('games.firstAttack') }}</span>
-                      <span v-else>🛡️ {{ t('games.secondAttack') }}</span>
-                   </div>
-                   
-                   <div class="text-center w-full">
-                      <label class="block text-sm font-bold text-gray-400 mb-2">對手</label>
-                       <input 
-                        v-model.number="formData.enemyScore"
-                        type="number" 
-                        min="0"
-                        class="w-full max-w-[140px] h-32 text-center text-6xl font-black bg-gray-800 border-4 border-gray-700 rounded-3xl focus:border-red-500 focus:ring-4 focus:ring-red-500/20 outline-none transition-all shadow-inner text-white font-mono no-spinner"
-                      >
-                   </div>
-                </div>
-             </div>
+            <!-- Scores -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-400 ml-1">
+                我方分數
+              </label>
+              <input 
+                v-model.number="formData.score"
+                type="number" 
+                min="0"
+                class="input-field"
+                placeholder="0"
+              >
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-400 ml-1">
+                對方分數
+              </label>
+              <input 
+                v-model.number="formData.enemyScore"
+                type="number" 
+                min="0"
+                class="input-field"
+                placeholder="0"
+              >
+            </div>
           </div>
 
           <div class="space-y-2">

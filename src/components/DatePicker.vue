@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue: {
@@ -11,7 +14,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'close']);
 
 // Date Utils
-const daysOfWeek = ['日', '一', '二', '三', '四', '五', '六'];
+const daysOfWeek = [
+  'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'
+];
 const today = new Date();
 
 // Initialize internal state from props
@@ -101,7 +106,7 @@ const nextMonth = () => {
         <button type="button" @click="prevMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
-        <div class="font-bold text-white">{{ currentYear }}年 {{ currentMonth + 1 }}月</div>
+        <div class="font-bold text-white">{{ currentYear }}{{ t('basic.year') }} {{ currentMonth + 1 }}{{ t('basic.month') }}</div>
         <button type="button" @click="nextMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
@@ -109,8 +114,8 @@ const nextMonth = () => {
 
     <!-- Weeks -->
     <div class="grid grid-cols-7 gap-1 mb-2">
-        <div v-for="day in daysOfWeek" :key="day" class="text-center text-xs font-medium text-gray-500 py-1">
-            {{ day }}
+        <div v-for="dayKey in daysOfWeek" :key="dayKey" class="text-center text-xs font-medium text-gray-500 py-1">
+            {{ t(`week.${dayKey}`) }}
         </div>
     </div>
     

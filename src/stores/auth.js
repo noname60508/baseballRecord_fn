@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import authService from '@/services/authService';
+import userService from '@/services/UserService';
 import { useMasterDataStore } from './masterData';
 
 export const useAuthStore = defineStore('auth', {
@@ -53,8 +54,19 @@ export const useAuthStore = defineStore('auth', {
 
         async fetchUser() {
             try {
-                const response = await authService.getUserInfo();
-                this.user = response.data;
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    this.logout();
+                    return;
+                }
+                const response = await userService.getUser(userId);
+                const userData = response.data.result; // getUser returns { result: { ... } }
+
+                // Add cache buster to icon if it exists
+                if (userData.icon) {
+                    userData.icon = `${userData.icon}${userData.icon.includes('?') ? '&' : '?'}t=${Date.now()}`;
+                }
+                this.user = userData;
             } catch (error) {
                 console.error('Failed to fetch user:', error);
                 this.logout();

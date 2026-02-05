@@ -46,7 +46,11 @@ const fetchUserProfile = async () => {
     
     if (finalId) {
       const response = await userService.getUser(finalId);
-      user.value = response.data.result; 
+      const userData = response.data.result;
+      if (userData.icon) {
+        userData.icon = `${userData.icon}${userData.icon.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      }
+      user.value = userData; 
       
       // Initialize form data
       formData.value.name = user.value.name;
@@ -108,7 +112,10 @@ const handleProfileSave = async () => {
     }
     
     await fetchUserProfile();
+    // Update global auth store to sync header/sidebar icons
+    await authStore.fetchUser();
     isEditingProfile.value = false;
+    toast.success('個人資料已更新');
   } catch (error) {
     console.error('Update profile failed:', error);
   }

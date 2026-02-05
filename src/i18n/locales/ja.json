@@ -2,7 +2,18 @@
     "basic": {
         "BB": "四球",
         "HBP": "死球",
-        "HR": "本塁打"
+        "HR": "本塁打",
+        "year": "年",
+        "month": "月"
+    },
+    "week": {
+        "mon": "月",
+        "tue": "火",
+        "wed": "水",
+        "thu": "木",
+        "fri": "金",
+        "sat": "土",
+        "sun": "日"
     },
     "common": {
         "appName": "野球記録管理システム",
@@ -17,7 +28,11 @@
         "confirm": "確認",
         "back": "戻る",
         "loading": "読み込み中...",
-        "noData": "データなし"
+        "noData": "データなし",
+        "next": "次へ",
+        "prev": "前へ",
+        "firstPage": "最初",
+        "lastPage": "最後"
     },
     "nav": {
         "games": "試合記録",
@@ -61,18 +76,41 @@
         "gameResult": "試合結果",
         "win": "勝",
         "loss": "敗",
-        "tie": "和"
+        "tie": "和",
+        "selectStartDate": "開始日を選択してください",
+        "selectEndDate": "終了日を選択してください",
+        "rangeSelected": "範囲選擇済み",
+        "dateRange": "日付範囲",
+        "basicInfo": "基本情報"
     },
     "batting": {
         "title": "打撃成績",
         "addRecord": "記録を追加",
+        "pa": "打席",
         "atBats": "打数",
         "hits": "安打",
-        "homeRuns": "ホームラン",
+        "homeRuns": "本塁打",
         "rbi": "打点",
+        "r": "得点",
+        "single": "単打",
+        "double": "二塁打",
+        "triple": "三塁打",
+        "hr": "本塁打",
+        "bb": "四球",
+        "ibb": "敬遠",
+        "hbp": "死球",
+        "so": "三振",
+        "sh": "犠打",
+        "sf": "犠飛",
+        "sb": "盗塁",
+        "cs": "盗塁死",
         "average": "打率",
         "slugging": "長打率",
-        "ops": "OPS"
+        "ops": "OPS",
+        "history": "打席履歴",
+        "pitcher": "投手",
+        "result": "結果",
+        "risp": "得点圏"
     },
     "masterData": {
         "title": "マスターデータ管理",
