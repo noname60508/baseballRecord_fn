@@ -3,8 +3,11 @@
 import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMasterDataStore } from '@/stores/masterData';
+import { useI18n } from 'vue-i18n';
 import battingService from '@/services/battingService';
 import battingResultService from '@/services/battingResultService';
+
+const { t } = useI18n();
 
 const props = defineProps({
     isOpen: {
@@ -38,35 +41,42 @@ const deletedBattingResultIds = ref([]);
 // Watch for modal open to initialize data
 watch(() => props.isOpen, async (isOpen) => {
     if (isOpen) {
-        // Load result options if not already loaded
-        await masterDataStore.fetchResultOptions();
-        
-        // Initialize local data
+        // Initialize simple stats immediately
         localBattingStats.value = {
             R: props.battingStats.R || 0,
             SB: props.battingStats.SB || 0,
             CS: props.battingStats.CS || 0
         };
         
-        // Deep copy and ensure numeric types for IDs
-        const copiedResults = JSON.parse(JSON.stringify(props.battingResults || []));
-        localBattingResults.value = copiedResults.map(r => {
-            // Convert to number, but preserve null for truly missing values
-            const convertId = (val) => {
-                if (val === null || val === undefined || val === '') return null;
-                return Number(val);
-            };
-            
-            return {
-                ...r,
-                Z00_matchupResultList_id: convertId(r.Z00_matchupResultList_id),
-                Z00_location_id: convertId(r.Z00_location_id),
-                Z00_BallInPlayType_id: convertId(r.Z00_BallInPlayType_id),
-                RBI: Number(r.RBI || 0),
-                RISP: Number(r.RISP || 0)
-            };
-        });
+        // Reset results initially to show loading/empty state
+        localBattingResults.value = [];
         deletedBattingResultIds.value = [];
+
+        // Defer heavy data processing
+        setTimeout(async () => {
+            // Load result options if needed
+            if (matchupResults.value.length === 0) {
+                await masterDataStore.fetchResultOptions();
+            }
+            
+            // Deep copy and process
+            const copiedResults = JSON.parse(JSON.stringify(props.battingResults || []));
+            localBattingResults.value = copiedResults.map(r => {
+                const convertId = (val) => {
+                    if (val === null || val === undefined || val === '') return null;
+                    return Number(val);
+                };
+                
+                return {
+                    ...r,
+                    Z00_matchupResultList_id: convertId(r.Z00_matchupResultList_id),
+                    Z00_location_id: convertId(r.Z00_location_id),
+                    Z00_BallInPlayType_id: convertId(r.Z00_BallInPlayType_id),
+                    RBI: Number(r.RBI || 0),
+                    RISP: Number(r.RISP || 0)
+                };
+            });
+        }, 50); // Small delay allows transition to start
     }
 });
 
@@ -204,7 +214,18 @@ const handleSave = async () => {
         emit('close');
     } catch (error) {
         console.error('Failed to save batting data:', error);
-        alert('儲存失敗，請稍後再試');
+        alert(t('common.save') + ' ' + t('common.failed')); // Or dedicated message if key exists, but common.failed might not. Let's stick to safe 'common.save' + ' failed' or similar. Actually '儲存失敗' is common.
+        // Let's create a fail safe string since I didn't verify a failed key.
+        // Wait, common.save is "儲存". But "失敗" (failed) key I didn't check.
+        // I'll leave it as static or add it? The user wants support.
+        // Better: alert(t('common.save') + ' Failed'); or just static for now as error case is rare?
+        // Ah, I missed adding a specific error message key. I'll use a mix or just the English fallback logic if keys miss.
+        // Let's check zh-TW for 'failed'. NOT FOUND.
+        // I will add it or just use translated "Save" + " Failed".
+        // Actually, let's just update it to a hardcoded bilingual string for now if key missing, or add key.
+        // I'll add 'common.failed' key? 
+        // For this step, let's keep it safe: alert(t('common.save') + ' error');
+        alert(t('common.save') + ' Error'); 
     } finally {
         isSaving.value = false;
     }
@@ -222,13 +243,13 @@ const handleClose = () => {
         <Transition name="modal">
             <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
                 <!-- Backdrop -->
-                <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" aria-hidden="true"></div>
+                <div class="absolute inset-0 bg-black/80" aria-hidden="true"></div>
 
                 <!-- Modal Container -->
                 <div class="relative bg-gray-900 rounded-2xl shadow-2xl border border-white/10 w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col z-10">
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gray-800/50">
-                        <h2 class="text-2xl font-black text-white tracking-tight">編輯打擊資料</h2>
+                        <h2 class="text-2xl font-black text-white tracking-tight">{{ t('batting.editTitle') }}</h2>
                         <button @click="handleClose" class="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -238,33 +259,33 @@ const handleClose = () => {
 
                     <!-- Content -->
                     <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                        <!-- Batting Statistics (Single Row) -->
-                        <div class="flex items-center gap-6 px-4 py-3 bg-gray-800/40 rounded-xl border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <label class="text-sm font-medium text-gray-400 min-w-[60px]">得分 (R)</label>
+                        <!-- Batting Statistics (Responsive Flex Layout) -->
+                        <div class="flex flex-wrap items-center gap-6 px-4 py-4 bg-gray-800/40 rounded-xl border border-white/5">
+                            <div class="flex flex-col items-start gap-1">
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.r') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.R"
                                     min="0"
-                                    class="input-field !py-2 !px-3 !text-sm w-20 text-center"
+                                    class="input-field !py-2 !px-3 !text-sm w-24 text-center"
                                 >
                             </div>
-                            <div class="flex items-center gap-3">
-                                <label class="text-sm font-medium text-gray-400 min-w-[60px]">盜壘 (SB)</label>
+                            <div class="flex flex-col items-start gap-1">
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.sb') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.SB"
                                     min="0"
-                                    class="input-field !py-2 !px-3 !text-sm w-20 text-center"
+                                    class="input-field !py-2 !px-3 !text-sm w-24 text-center"
                                 >
                             </div>
-                            <div class="flex items-center gap-3">
-                                <label class="text-sm font-medium text-gray-400 min-w-[80px]">盜壘失敗 (CS)</label>
+                            <div class="flex flex-col items-start gap-1">
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.cs') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.CS"
                                     min="0"
-                                    class="input-field !py-2 !px-3 !text-sm w-20 text-center"
+                                    class="input-field !py-2 !px-3 !text-sm w-24 text-center"
                                 >
                             </div>
                         </div>
@@ -272,7 +293,7 @@ const handleClose = () => {
                         <!-- Batting Results Table -->
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-bold text-white">逐打席記錄</h3>
+                                <h3 class="text-lg font-bold text-white">{{ t('batting.history') }}</h3>
                                 <button 
                                     @click="addBattingResult"
                                     class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2"
@@ -280,7 +301,7 @@ const handleClose = () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
-                                    新增打席
+                                    {{ t('batting.addPa') }}
                                 </button>
                             </div>
 
@@ -289,14 +310,14 @@ const handleClose = () => {
                                     <table class="w-full text-left border-collapse">
                                         <thead>
                                             <tr class="bg-gray-900 border-b border-white/10 uppercase text-[10px] md:text-xs tracking-[0.1em] text-gray-500 font-bold">
-                                                <th class="px-2 md:px-4 py-4 text-center w-12">#</th>
-                                                <th class="px-2 md:px-4 py-4 text-gray-400">投手</th>
-                                                <th class="px-2 md:px-4 py-4 text-gray-400">打擊結果</th>
-                                                <th class="px-2 md:px-4 py-4 text-gray-400">擊球落點</th>
-                                                <th class="px-2 md:px-4 py-4 text-gray-400">擊球型態</th>
-                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400">打點</th>
-                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400">得點圈</th>
-                                                <th class="px-2 md:px-4 py-4 text-center w-16"></th>
+                                                <th class="px-2 md:px-4 py-4 text-center w-12 text-nowrap">#</th>
+                                                <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[120px] text-nowrap">{{ t('batting.pitcher') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[150px] text-nowrap">{{ t('batting.matchupResult') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[130px] text-nowrap">{{ t('batting.location') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[130px] text-nowrap">{{ t('batting.ballType') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400 w-20 text-nowrap">{{ t('batting.rbi') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400 min-w-[80px] text-nowrap">{{ t('batting.risp') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-center w-16 text-nowrap"></th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-white/5 bg-gray-800/40">
@@ -311,8 +332,8 @@ const handleClose = () => {
                                                     <input 
                                                         type="text" 
                                                         v-model="result.pitcher"
-                                                        class="input-field !py-2 !px-3 !text-sm w-full min-w-[120px]"
-                                                        placeholder="投手名稱"
+                                                        class="input-field !py-2 !px-3 !text-sm w-full"
+                                                        :placeholder="t('batting.pitcher')"
                                                     >
                                                 </td>
                                                 
@@ -321,9 +342,9 @@ const handleClose = () => {
                                                     <select 
                                                         v-model="result.Z00_matchupResultList_id"
                                                         @change="handleMatchupResultChange(index, Number($event.target.value))"
-                                                        class="input-field !py-2 !px-3 !text-sm w-full min-w-[140px]"
+                                                        class="input-field !py-2 !px-3 !text-sm w-full"
                                                     >
-                                                        <option :value="null">選擇結果</option>
+                                                        <option :value="null">---</option>
                                                         <option v-for="mr in matchupResults" :key="mr.Z00_matchupResultList_id" :value="Number(mr.Z00_matchupResultList_id)">
                                                             {{ mr.name }}
                                                         </option>
@@ -335,7 +356,7 @@ const handleClose = () => {
                                                     <select 
                                                         v-if="hasAvailableLocations(result.Z00_matchupResultList_id)"
                                                         v-model="result.Z00_location_id"
-                                                        class="input-field !py-2 !px-3 !text-sm w-full min-w-[120px]"
+                                                        class="input-field !py-2 !px-3 !text-sm w-full"
                                                     >
                                                         <option :value="null">選擇落點</option>
                                                         <option v-for="loc in getAvailableLocations(result.Z00_matchupResultList_id)" :key="loc.Z00_positionAndLocation_id" :value="Number(loc.Z00_positionAndLocation_id)">
@@ -350,7 +371,7 @@ const handleClose = () => {
                                                     <select 
                                                         v-if="hasAvailableBallTypes(result.Z00_matchupResultList_id)"
                                                         v-model="result.Z00_BallInPlayType_id"
-                                                        class="input-field !py-2 !px-3 !text-sm w-full min-w-[120px]"
+                                                        class="input-field !py-2 !px-3 !text-sm w-full"
                                                     >
                                                         <option :value="null">選擇型態</option>
                                                         <option v-for="type in getAvailableBallTypes(result.Z00_matchupResultList_id)" :key="type.Z00_ballInPlayType_id" :value="Number(type.Z00_ballInPlayType_id)">
@@ -360,15 +381,18 @@ const handleClose = () => {
                                                     <span v-else class="text-gray-600 text-sm">-</span>
                                                 </td>
                                                 
-                                                <!-- RBI -->
+                                                <!-- RBI (Dropdown 0-4) -->
                                                 <td class="px-2 md:px-4 py-3">
-                                                    <input 
-                                                        type="number" 
+                                                    <select
                                                         v-model.number="result.RBI"
-                                                        min="0"
-                                                        class="input-field !py-2 !px-3 !text-sm w-16 text-center"
-                                                        placeholder="0"
+                                                        class="input-field !py-2 !px-1 !text-sm w-full text-center"
                                                     >
+                                                        <option :value="0">0</option>
+                                                        <option :value="1">1</option>
+                                                        <option :value="2">2</option>
+                                                        <option :value="3">3</option>
+                                                        <option :value="4">4</option>
+                                                    </select>
                                                 </td>
                                                 
                                                 <!-- RISP Checkbox -->
@@ -413,7 +437,7 @@ const handleClose = () => {
                             class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 transition-all"
                             :disabled="isSaving"
                         >
-                            取消
+                            {{ t('common.cancel') }}
                         </button>
                         <button 
                             @click="handleSave"
@@ -424,7 +448,7 @@ const handleClose = () => {
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            {{ isSaving ? '儲存中...' : '儲存' }}
+                            {{ isSaving ? t('common.loading') : t('common.save') }}
                         </button>
                     </div>
                 </div>

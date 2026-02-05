@@ -32,7 +32,8 @@
         "next": "次へ",
         "prev": "前へ",
         "firstPage": "最初",
-        "lastPage": "最後"
+        "lastPage": "最後",
+        "failed": "失敗"
     },
     "nav": {
         "games": "試合記録",
@@ -81,7 +82,10 @@
         "selectEndDate": "終了日を選択してください",
         "rangeSelected": "範囲選擇済み",
         "dateRange": "日付範囲",
-        "basicInfo": "基本情報"
+        "basicInfo": "基本情報",
+        "myScore": "自チーム得点",
+        "opponentScore": "相手チーム得点",
+        "pa": "打席"
     },
     "batting": {
         "title": "打撃成績",
@@ -110,7 +114,12 @@
         "history": "打席履歴",
         "pitcher": "投手",
         "result": "結果",
-        "risp": "得点圏"
+        "risp": "得点圏",
+        "editTitle": "打撃データを編集",
+        "matchupResult": "打撃結果",
+        "location": "打球方向",
+        "ballType": "打球タイプ",
+        "addPa": "打席を追加"
     },
     "masterData": {
         "title": "マスターデータ管理",

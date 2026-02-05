@@ -328,28 +328,7 @@ onMounted(() => {
                 </button>
                 <h1 class="text-3xl font-bold text-white tracking-tight">比賽詳情</h1>
             </div>
-            <div v-if="game" class="flex gap-3">
-                <template v-if="!isEditing">
-                    <button @click="startEdit" class="btn-secondary flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        編輯
-                    </button>
-                </template>
-                <template v-else>
-                    <button @click="cancelEdit" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 transition-all" :disabled="isSaving">
-                        {{ t('common.cancel') }}
-                    </button>
-                    <button @click="saveChanges" class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2" :disabled="isSaving">
-                        <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        {{ isSaving ? t('common.loading') : t('common.save') }}
-                    </button>
-                </template>
-            </div>
+            <!-- Removed Buttons from here -->
         </div>
 
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
@@ -366,9 +345,34 @@ onMounted(() => {
 
             <!-- Section 1: Basic Info -->
             <section class="space-y-6">
-                <div class="flex items-center gap-3 px-1">
-                    <div class="w-1.5 h-6 md:w-2 md:h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
-                    <h2 class="text-xl md:text-2xl font-black text-white tracking-tight uppercase">{{ t('games.basicInfo') }}</h2>
+                <div class="flex items-center justify-between px-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-6 md:w-2 md:h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight uppercase">{{ t('games.basicInfo') }}</h2>
+                    </div>
+
+                    <div v-if="game" class="flex gap-3">
+                        <template v-if="!isEditing">
+                            <button @click="startEdit" class="btn-primary flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                編輯基本資料
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button @click="saveChanges" class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2" :disabled="isSaving">
+                                <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                {{ isSaving ? t('common.loading') : t('common.save') }}
+                            </button>
+                            <button @click="cancelEdit" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 transition-all" :disabled="isSaving">
+                                {{ t('common.cancel') }}
+                            </button>
+                        </template>
+                    </div>
                 </div>
                 
                 <!-- View Mode: Horizontal Style with Same Layout Structure -->
@@ -434,13 +438,13 @@ onMounted(() => {
 
                                 <!-- My Score -->
                                 <div class="flex justify-between items-center py-2 border-b border-white/5">
-                                    <span class="text-gray-500 font-bold text-base uppercase tracking-wider">我方分數</span>
+                                    <span class="text-gray-500 font-bold text-base uppercase tracking-wider">{{ t('games.myScore') }}</span>
                                     <span class="text-white font-bold text-xl">{{ gameData.score }}</span>
                                 </div>
 
                                 <!-- Opponent Score -->
                                 <div class="flex justify-between items-center py-2 border-b border-white/5">
-                                    <span class="text-gray-500 font-bold text-base uppercase tracking-wider">對方分數</span>
+                                    <span class="text-gray-500 font-bold text-base uppercase tracking-wider">{{ t('games.opponentScore') }}</span>
                                     <span class="text-white font-bold text-xl">{{ gameData.enemyScore }}</span>
                                 </div>
                             </div>
@@ -503,7 +507,7 @@ onMounted(() => {
                                             @focus="showDatePicker = true" 
                                             readonly 
                                             class="input-field cursor-pointer"
-                                            placeholder="選擇日期"
+                                            :placeholder="t('games.selectStartDate')"
                                         >
                                         <div v-if="showDatePicker" class="absolute left-0 top-full z-50 mt-1 shadow-2xl">
                                             <DatePicker v-model="editedGameData.gameDate" @close="showDatePicker = false" />
@@ -522,7 +526,7 @@ onMounted(() => {
                                             @focus="showStartTimePicker = true" 
                                             readonly 
                                             class="input-field cursor-pointer"
-                                            placeholder="開始時間"
+                                            :placeholder="t('games.startTime')"
                                         >
                                         <div v-if="showStartTimePicker" class="absolute left-0 top-full z-50 mt-1 shadow-2xl">
                                             <TimePicker v-model="editedGameData.startTime" @close="showStartTimePicker = false" />
@@ -541,7 +545,7 @@ onMounted(() => {
                                             @focus="showEndTimePicker = true" 
                                             readonly 
                                             class="input-field cursor-pointer"
-                                            placeholder="結束時間"
+                                            :placeholder="t('games.endTime')"
                                         >
                                         <div v-if="showEndTimePicker" class="absolute left-0 top-full z-50 mt-1 shadow-2xl">
                                             <TimePicker v-model="editedGameData.endTime" @close="showEndTimePicker = false" />
@@ -580,7 +584,7 @@ onMounted(() => {
 
                                 <!-- My Score -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-400 ml-1">我方分數</label>
+                                    <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.myScore') }}</label>
                                     <input 
                                         type="number" 
                                         v-model.number="editedGameData.score" 
@@ -592,7 +596,7 @@ onMounted(() => {
 
                                 <!-- Opponent Score -->
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-400 ml-1">對方分數</label>
+                                    <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.opponentScore') }}</label>
                                     <input 
                                         type="number" 
                                         v-model.number="editedGameData.enemyScore" 
@@ -613,7 +617,7 @@ onMounted(() => {
                             v-model="editedGameData.memo" 
                             rows="3" 
                             class="input-field"
-                            placeholder="輸入備註..."
+                            :placeholder="t('games.memo') + '...'"
                         ></textarea>
                     </div>
                 </div>
@@ -623,21 +627,9 @@ onMounted(() => {
             <div class="flex flex-col lg:flex-row gap-8">
                 <!-- Section 2: Batting Statistics (1/3 width) -->
                 <section class="flex-1 lg:flex-[1] space-y-6">
-                    <div class="flex items-center justify-between px-1">
-                        <div class="flex items-center gap-3">
-                            <div class="w-1.5 h-6 md:w-2 md:h-8 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)]"></div>
-                            <h2 class="text-xl md:text-2xl font-black text-white tracking-tight uppercase">{{ t('batting.title') }}</h2>
-                        </div>
-                        <!-- Edit Batting Data Button -->
-                        <button 
-                            @click="openBattingDataModal"
-                            class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold transition-all shadow-lg shadow-green-500/20 flex items-center gap-2"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            編輯打擊資料
-                        </button>
+                    <div class="flex items-center gap-3 px-1">
+                        <div class="w-1.5 h-6 md:w-2 md:h-8 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)]"></div>
+                        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight uppercase">{{ t('batting.title') }}</h2>
                     </div>
                     
                     <div v-if="battingStatistics" class="card overflow-hidden shadow-xl backdrop-blur-sm border-white/10">
@@ -694,11 +686,11 @@ onMounted(() => {
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-900 border-b border-white/10 uppercase text-[10px] md:text-xs tracking-[0.1em] text-gray-500 font-bold">
-                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center w-12">{{ t('common.noData') === 'No' ? 'No' : '#' }}</th>
-                                        <th class="px-3 md:px-6 py-4 md:py-5 text-gray-400">{{ t('batting.pitcher') }}</th>
-                                        <th class="px-3 md:px-6 py-4 md:py-5 text-gray-400">{{ t('batting.result') }}</th>
-                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400">{{ t('batting.rbi') }}</th>
+                                    <tr class="bg-gray-900 border-b border-white/10 uppercase text-xs md:text-sm tracking-[0.1em] text-gray-500 font-bold">
+                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400 text-nowrap">{{ t('games.pa') }}</th>
+                                        <th class="px-2 md:px-6 py-4 md:py-5 text-gray-400 w-36 max-w-[10rem] text-nowrap">{{ t('batting.pitcher') }}</th>
+                                        <th class="px-3 md:px-6 py-4 md:py-5 text-gray-400 w-auto min-w-[8rem] text-nowrap">{{ t('batting.matchupResult') }}</th>
+                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400 text-nowrap">{{ t('batting.rbi') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5 bg-gray-800/40">
@@ -706,18 +698,18 @@ onMounted(() => {
                                         <td class="px-3 md:px-6 py-4 text-center relative">
                                             <!-- RISP Indicator (Minimalist) -->
                                             <div v-if="Number(pa.RISP) === 1" class="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-red-800"></div>
-                                            <span class="text-xs md:text-sm font-black text-gray-600">{{ index + 1 }}</span>
+                                            <span class="text-sm md:text-base font-black text-gray-600">{{ index + 1 }}</span>
                                         </td>
-                                        <td class="px-3 md:px-6 py-4 text-xs md:text-sm text-gray-300 font-bold tracking-tight">
+                                        <td class="px-3 md:px-6 py-4 text-sm md:text-base text-gray-300 font-bold tracking-tight truncate max-w-[8rem]" :title="pa.pitcher">
                                             {{ pa.pitcher || '---' }}
                                         </td>
                                         <td class="px-3 md:px-6 py-4">
-                                            <span class="text-xs md:text-sm font-black tracking-wide text-gray-200">
+                                            <span class="text-sm md:text-base font-black tracking-wide text-gray-200">
                                                 {{ pa.displayName }}
                                             </span>
                                         </td>
                                         <td class="px-3 md:px-6 py-4 text-center">
-                                            <span class="text-xs md:text-sm font-black font-mono text-gray-200" v-if="pa.RBI > 0">
+                                            <span class="text-sm md:text-base font-black font-mono text-gray-200" v-if="pa.RBI > 0">
                                                 {{ pa.RBI }}
                                             </span>
                                             <span v-else class="text-gray-700 font-black">-</span>
@@ -730,12 +722,24 @@ onMounted(() => {
                     
                     <!-- Empty State (View Mode) -->
                     <div v-else class="card p-12 text-center text-gray-600 italic bg-gray-800/20 border-dashed border-white/5">
-                        目前無打席詳細紀錄
+                        {{ t('common.noData') }}
                     </div>
                 </section>
             </div>
         </div>
         
+        <!-- Floating Edit Batting Data Button -->
+        <button 
+            v-if="!isLoading"
+            @click="openBattingDataModal"
+            class="fixed bottom-24 right-6 md:bottom-24 md:right-64 z-40 px-6 py-4 rounded-full bg-green-600 hover:bg-green-500 text-white font-bold transition-all shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:shadow-[0_0_30px_rgba(34,197,94,0.6)] hover:scale-105 flex items-center gap-3 active:scale-95 border border-white/10 backdrop-blur-sm"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span class="text-base tracking-wide">{{ t('batting.editTitle') }}</span>
+        </button>
+
         <!-- Batting Data Modal -->
         <BattingDataModal 
             :is-open="showBattingDataModal"

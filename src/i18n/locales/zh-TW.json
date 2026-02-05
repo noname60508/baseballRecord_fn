@@ -32,7 +32,8 @@
         "next": "下一頁",
         "prev": "上一頁",
         "firstPage": "第一頁",
-        "lastPage": "最後一頁"
+        "lastPage": "最後一頁",
+        "failed": "失敗"
     },
     "nav": {
         "games": "比賽紀錄",
@@ -81,7 +82,10 @@
         "selectEndDate": "請點選結束日期 (可同日)",
         "rangeSelected": "已選取範圍",
         "dateRange": "日期範圍",
-        "basicInfo": "基本資料"
+        "basicInfo": "基本資料",
+        "myScore": "我方分數",
+        "opponentScore": "對方分數",
+        "pa": "打席"
     },
     "batting": {
         "title": "打擊成績",
@@ -110,7 +114,12 @@
         "history": "逐打席",
         "pitcher": "投手",
         "result": "結果",
-        "risp": "是否得點圈打擊"
+        "risp": "得點圈",
+        "editTitle": "編輯打擊資料",
+        "matchupResult": "打擊結果",
+        "location": "擊球落點",
+        "ballType": "擊球型態",
+        "addPa": "新增打席"
     },
     "masterData": {
         "title": "主資料管理",
