@@ -1,17 +1,36 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   isOpen: Boolean,
   title: String,
   label: String,
-  isLoading: Boolean
+  isLoading: Boolean,
+  mode: {
+    type: String,
+    default: 'input', // 'input' | 'confirm'
+    validator: (value) => ['input', 'confirm'].includes(value)
+  },
+  confirmText: {
+    type: String,
+    default: ''
+  },
+  confirmButtonClass: {
+    type: String,
+    default: 'btn-primary'
+  }
 });
 
 const emit = defineEmits(['close', 'confirm']);
 const { t } = useI18n();
 const inputValue = ref('');
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    inputValue.value = '';
+  }
+});
 
 const close = () => {
   inputValue.value = '';
@@ -19,8 +38,11 @@ const close = () => {
 };
 
 const confirm = () => {
-  if (inputValue.value.trim()) {
-    emit('confirm', inputValue.value);
+  if (props.mode === 'input' && !inputValue.value.trim()) {
+    return;
+  }
+  emit('confirm', inputValue.value);
+  if (props.mode === 'input') {
     inputValue.value = '';
   }
 };
@@ -45,17 +67,20 @@ const confirm = () => {
         <!-- Header -->
         <div class="bg-gradient-to-r from-gray-800 to-gray-700 px-6 py-4 border-b border-white/5">
           <h3 class="text-lg leading-6 font-bold text-white flex items-center gap-2" id="modal-title">
-            <span class="text-blue-500">✨</span>
+            <span v-if="mode === 'input'" class="text-blue-500">✨</span>
+            <span v-else class="text-red-500">⚠️</span>
             {{ title }}
           </h3>
         </div>
 
         <div class="px-6 py-6">
           <div class="mt-2">
-            <label class="block text-sm font-medium text-gray-400 mb-2 ml-1">
+            <label v-if="label" class="block text-base text-gray-300 mb-2 ml-1" :class="{'font-medium text-gray-400 text-sm': mode === 'input'}">
               {{ label }}
             </label>
+            
             <input 
+              v-if="mode === 'input'"
               v-model="inputValue"
               type="text" 
               class="input-field"
@@ -72,7 +97,7 @@ const confirm = () => {
         <div class="bg-gray-900/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-white/5">
           <button 
             type="button" 
-            class="btn-primary w-full sm:w-auto"
+            :class="[confirmButtonClass, 'w-full sm:w-auto']"
             @click="confirm"
             :disabled="isLoading"
           >
@@ -80,7 +105,7 @@ const confirm = () => {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-            {{ isLoading ? t('common.loading') : t('common.confirm') }}
+            {{ isLoading ? t('common.loading') : (confirmText || t('common.confirm')) }}
           </button>
           <button 
             type="button" 

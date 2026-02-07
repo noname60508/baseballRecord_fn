@@ -33,7 +33,9 @@
         "prev": "上一頁",
         "firstPage": "第一頁",
         "lastPage": "最後一頁",
-        "failed": "失敗"
+        "failed": "失敗",
+        "deleteConfirm": "確定要刪除嗎？",
+        "required": "必填"
     },
     "nav": {
         "games": "比賽紀錄",
@@ -57,6 +59,7 @@
     "games": {
         "title": "比賽紀錄",
         "addGame": "新增比賽",
+        "deleteGame": "刪除",
         "team": "球隊",
         "season": "賽季",
         "field": "場地",
@@ -85,7 +88,9 @@
         "basicInfo": "基本資料",
         "myScore": "我方分數",
         "opponentScore": "對方分數",
-        "pa": "打席"
+        "pa": "打席",
+        "seasonIdRequired": "請選擇賽季",
+        "teamIdRequired": "請選擇我方球隊"
     },
     "batting": {
         "title": "打擊成績",
@@ -119,7 +124,8 @@
         "matchupResult": "打擊結果",
         "location": "擊球落點",
         "ballType": "擊球型態",
-        "addPa": "新增打席"
+        "addPa": "新增打席",
+        "requiredToast": "請選擇打擊結果或是刪除未選擇的打席後再試一次。"
     },
     "masterData": {
         "title": "主資料管理",

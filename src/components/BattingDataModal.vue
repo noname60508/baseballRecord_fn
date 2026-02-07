@@ -7,7 +7,10 @@ import { useI18n } from 'vue-i18n';
 import battingService from '@/services/battingService';
 import battingResultService from '@/services/battingResultService';
 
+import { useToast } from '@/composables/useToast';
+
 const { t } = useI18n();
+const { error: toastError } = useToast();
 
 const props = defineProps({
     isOpen: {
@@ -176,6 +179,14 @@ const handleSave = async () => {
             localBattingStats.value.SB !== (props.battingStats.SB || 0) ||
             localBattingStats.value.CS !== (props.battingStats.CS || 0);
         
+        // Validate Batting Results
+        const invalidResults = localBattingResults.value.filter(r => !r.Z00_matchupResultList_id);
+        if (invalidResults.length > 0) {
+            toastError(t('batting.requiredToast'));
+            isSaving.value = false;
+            return;
+        }
+
         if (statsChanged) {
             await battingService.updateBattingRecord(props.gameId, localBattingStats.value);
         }
@@ -214,12 +225,6 @@ const handleSave = async () => {
         emit('close');
     } catch (error) {
         console.error('Failed to save batting data:', error);
-        alert(t('common.save') + ' ' + t('common.failed')); // Or dedicated message if key exists, but common.failed might not. Let's stick to safe 'common.save' + ' failed' or similar. Actually '儲存失敗' is common.
-        // Let's create a fail safe string since I didn't verify a failed key.
-        // Wait, common.save is "儲存". But "失敗" (failed) key I didn't check.
-        // I'll leave it as static or add it? The user wants support.
-        // Better: alert(t('common.save') + ' Failed'); or just static for now as error case is rare?
-        // Ah, I missed adding a specific error message key. I'll use a mix or just the English fallback logic if keys miss.
         // Let's check zh-TW for 'failed'. NOT FOUND.
         // I will add it or just use translated "Save" + " Failed".
         // Actually, let's just update it to a hardcoded bilingual string for now if key missing, or add key.
@@ -241,12 +246,12 @@ const handleClose = () => {
 <template>
     <Teleport to="body">
         <Transition name="modal">
-            <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center md:p-4 p-0">
                 <!-- Backdrop -->
                 <div class="absolute inset-0 bg-black/80" aria-hidden="true"></div>
 
                 <!-- Modal Container -->
-                <div class="relative bg-gray-900 rounded-2xl shadow-2xl border border-white/10 w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col z-10">
+                <div class="relative bg-gray-900 md:rounded-2xl rounded-none shadow-2xl border border-white/10 w-full max-w-6xl md:max-h-[90vh] h-full md:h-auto overflow-hidden flex flex-col z-10">
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gray-800/50">
                         <h2 class="text-2xl font-black text-white tracking-tight">{{ t('batting.editTitle') }}</h2>

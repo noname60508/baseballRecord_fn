@@ -11,7 +11,7 @@ export const useGameListStore = defineStore('gameList', {
             gameDate: [null, null]
         },
         currentPage: 1,
-        isSearchOpen: true
+        isSearchOpen: false
     }),
     actions: {
         setSearchForm(form) {
@@ -22,18 +22,6 @@ export const useGameListStore = defineStore('gameList', {
         },
         setIsSearchOpen(isOpen) {
             this.isSearchOpen = isOpen;
-        },
-        resetState() {
-            this.searchForm = {
-                Z00_season_id: '',
-                Z00_team_id: '',
-                Z00_team_id_enemy: '',
-                Z00_field_id: '',
-                gameResult: '',
-                gameDate: [null, null]
-            };
-            this.currentPage = 1;
-            this.isSearchOpen = true;
         }
     }
 });

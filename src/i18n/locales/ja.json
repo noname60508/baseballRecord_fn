@@ -33,7 +33,9 @@
         "prev": "前へ",
         "firstPage": "最初",
         "lastPage": "最後",
-        "failed": "失敗"
+        "failed": "失敗",
+        "deleteConfirm": "本当に削除しますか？",
+        "required": "必須"
     },
     "nav": {
         "games": "試合記録",
@@ -57,6 +59,7 @@
     "games": {
         "title": "試合記録",
         "addGame": "試合を追加",
+        "deleteGame": "削除",
         "team": "チーム",
         "season": "シーズン",
         "field": "球場",
@@ -85,7 +88,9 @@
         "basicInfo": "基本情報",
         "myScore": "自チーム得点",
         "opponentScore": "相手チーム得点",
-        "pa": "打席"
+        "pa": "打席",
+        "seasonIdRequired": "シーズンを選択してください",
+        "teamIdRequired": "チームを選択してください"
     },
     "batting": {
         "title": "打撃成績",
@@ -116,10 +121,11 @@
         "result": "結果",
         "risp": "得点圏",
         "editTitle": "打撃データを編集",
-        "matchupResult": "打撃結果",
+        "matchupResult": "打席結果",
         "location": "打球方向",
         "ballType": "打球タイプ",
-        "addPa": "打席を追加"
+        "addPa": "打席を追加",
+        "requiredToast": "打席結果を選択するか未選択の打席を削除し、再度お試しください。"
     },
     "masterData": {
         "title": "マスターデータ管理",

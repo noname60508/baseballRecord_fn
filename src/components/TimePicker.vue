@@ -5,6 +5,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: ''
+  },
+  defaultValue: {
+    type: String,
+    default: ''
   }
 });
 
@@ -13,17 +17,47 @@ const emit = defineEmits(['update:modelValue', 'close']);
 const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-const selectedHour = ref('12');
+const selectedHour = ref('00');
 const selectedMinute = ref('00');
 
-// Initialize from modelValue
-watch(() => props.modelValue, (newVal) => {
-    if (newVal && newVal.includes(':')) {
-        const [h, m] = newVal.split(':');
+// Refs for scrolling
+const hoursContainer = ref(null);
+const minutesContainer = ref(null);
+
+const scrollToSelected = () => {
+    // Wait for DOM update
+    setTimeout(() => {
+        if (hoursContainer.value) {
+            const activeHour = hoursContainer.value.querySelector('.bg-blue-600');
+            if (activeHour) {
+                hoursContainer.value.scrollTop = activeHour.offsetTop - hoursContainer.value.offsetTop - 60; // Center it roughly
+            }
+        }
+        if (minutesContainer.value) {
+            const activeMinute = minutesContainer.value.querySelector('.bg-blue-600');
+            if (activeMinute) {
+                minutesContainer.value.scrollTop = activeMinute.offsetTop - minutesContainer.value.offsetTop - 60;
+            }
+        }
+    }, 0);
+};
+
+// Initialize from modelValue or defaultValue
+watch(() => [props.modelValue, props.defaultValue], ([newModel, newDefault]) => {
+    let timeToSet = newModel;
+    if (!timeToSet && newDefault) {
+        timeToSet = newDefault;
+    }
+
+    if (timeToSet && timeToSet.includes(':')) {
+        const [h, m] = timeToSet.split(':');
         selectedHour.value = h;
         // Find closest minute in our list or just set it
         selectedMinute.value = m;
     }
+    
+    // Scroll to selected on open/change
+    scrollToSelected();
 }, { immediate: true });
 
 const selectHour = (h) => {
@@ -53,7 +87,7 @@ const handleConfirm = () => {
         <!-- Hours Column -->
         <div class="flex-1">
             <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">時</div>
-            <div class="h-48 overflow-y-auto custom-scrollbar pr-1">
+            <div ref="hoursContainer" class="h-48 overflow-y-auto custom-scrollbar pr-1 relative">
                 <div class="grid grid-cols-1 gap-1">
                     <button 
                         v-for="h in hours" 
@@ -72,7 +106,7 @@ const handleConfirm = () => {
         <!-- Minutes Column -->
         <div class="flex-1">
             <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">分</div>
-            <div class="h-48 overflow-y-auto custom-scrollbar pr-1">
+            <div ref="minutesContainer" class="h-48 overflow-y-auto custom-scrollbar pr-1 relative">
                 <div class="grid grid-cols-1 gap-1">
                     <button 
                         v-for="m in minutes" 

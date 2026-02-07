@@ -377,7 +377,7 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div v-if="showEndTimePicker" class="absolute top-full left-0 z-50 mt-2 shadow-2xl">
-                    <TimePicker v-model="formData.endTime" @close="showEndTimePicker = false" />
+                    <TimePicker v-model="formData.endTime" :default-value="formData.startTime" @close="showEndTimePicker = false" />
                 </div>
                 <div v-if="showEndTimePicker" class="fixed inset-0 z-40" @click="showEndTimePicker = false"></div>
               </div>

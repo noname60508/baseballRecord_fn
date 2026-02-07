@@ -10,6 +10,7 @@ import { storeToRefs } from 'pinia';
 import DatePicker from '@/components/DatePicker.vue';
 import TimePicker from '@/components/TimePicker.vue';
 import BattingDataModal from '@/components/BattingDataModal.vue';
+import QuickAddModal from '@/components/QuickAddModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -38,6 +39,7 @@ const { seasons, fields, myTeams, opponentTeams, matchupResults, locations, ball
 const showDatePicker = ref(false);
 const showStartTimePicker = ref(false);
 const showEndTimePicker = ref(false);
+const showDeleteModal = ref(false);
 
 const fetchGameDetails = async () => {
     try {
@@ -157,6 +159,24 @@ const saveChanges = async () => {
     }
 };
 
+const openDeleteModal = () => {
+    showDeleteModal.value = true;
+};
+
+const confirmDelete = async () => {
+    try {
+        isLoading.value = true;
+        await gameService.deleteGame(gameData.value.id);
+        router.push('/games');
+    } catch (error) {
+        console.error('Failed to delete game:', error);
+        alert(t('common.failed'));
+        isLoading.value = false; // Only stop loading on error, success redirects
+    } finally {
+        showDeleteModal.value = false;
+    }
+};
+
 const getResultText = (result) => {
     switch (Number(result)) {
     case 1: return t('games.win');
@@ -165,6 +185,41 @@ const getResultText = (result) => {
     default: return '-';
   }
 };
+
+const gameResult = computed(() => {
+    if (!gameData.value) return null;
+    
+    // Logic: 1=Win, 2=Loss, 3=Tie
+    const result = Number(gameData.value.gameResult) || 0; // Default to 0 if missing
+    
+    // Base Colors
+    let colorPrefix = 'gray';
+    let textKey = 'games.tie';
+    let type = 'tie';
+
+    if (result === 1) { // Win
+        colorPrefix = 'green';
+        textKey = 'games.win';
+        type = 'win';
+    } else if (result === 2) { // Loss
+        colorPrefix = 'red';
+        textKey = 'games.loss';
+        type = 'loss';
+    } else if (result === 3) { // Tie
+        colorPrefix = 'yellow';
+        textKey = 'games.tie';
+        type = 'tie';
+    } else {
+        return null; // No result yet
+    }
+
+    return {
+        type,
+        text: t(textKey),
+        // Style: Watermark Text
+        watermarkColor: `text-${colorPrefix}-500/10`,
+    };
+});
 
 // ========== Batting Results (逐打席) CRUD Functions ==========
 
@@ -328,7 +383,6 @@ onMounted(() => {
                 </button>
                 <h1 class="text-3xl font-bold text-white tracking-tight">比賽詳情</h1>
             </div>
-            <!-- Removed Buttons from here -->
         </div>
 
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
@@ -357,10 +411,22 @@ onMounted(() => {
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                                編輯基本資料
+                                編輯
+                            </button>
+                            <button 
+                                @click="openDeleteModal" 
+                                class="btn-secondary flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                {{ t('games.deleteGame') }}
                             </button>
                         </template>
                         <template v-else>
+                            <button @click="cancelEdit" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 transition-all" :disabled="isSaving">
+                                {{ t('common.cancel') }}
+                            </button>
                             <button @click="saveChanges" class="px-8 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2" :disabled="isSaving">
                                 <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
@@ -368,16 +434,21 @@ onMounted(() => {
                                 </svg>
                                 {{ isSaving ? t('common.loading') : t('common.save') }}
                             </button>
-                            <button @click="cancelEdit" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 font-bold hover:bg-white/5 transition-all" :disabled="isSaving">
-                                {{ t('common.cancel') }}
-                            </button>
                         </template>
                     </div>
                 </div>
                 
                 <!-- View Mode: Horizontal Style with Same Layout Structure -->
-                <div v-if="!isEditing" class="card p-6 md:p-8 bg-gray-800/40 border-white/10 shadow-xl backdrop-blur-sm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div 
+                    v-if="!isEditing" 
+                    class="card p-6 md:p-8 bg-gray-800/40 border-white/10 shadow-xl backdrop-blur-sm relative overflow-hidden group transition-all duration-500"
+                >
+                    <!-- Game Result Watermark -->
+                    <div v-if="gameResult" class="absolute -right-4 -bottom-4 z-0 pointer-events-none select-none">
+                        <span class="text-[120px] font-black leading-none opacity-20 transform -rotate-12 block" :class="gameResult.watermarkColor">{{ gameResult.text }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                         <!-- Season -->
                         <div class="flex justify-between items-center py-2 border-b border-white/5">
                             <span class="text-gray-500 font-bold text-base uppercase tracking-wider">{{ t('games.season') }}</span>
@@ -548,7 +619,7 @@ onMounted(() => {
                                             :placeholder="t('games.endTime')"
                                         >
                                         <div v-if="showEndTimePicker" class="absolute left-0 top-full z-50 mt-1 shadow-2xl">
-                                            <TimePicker v-model="editedGameData.endTime" @close="showEndTimePicker = false" />
+                                            <TimePicker v-model="editedGameData.endTime" :default-value="editedGameData.startTime" @close="showEndTimePicker = false" />
                                         </div>
                                         <div v-if="showEndTimePicker" class="fixed inset-0 z-40" @click="showEndTimePicker = false"></div>
                                     </div>
@@ -748,6 +819,19 @@ onMounted(() => {
             :batting-results="battingResults"
             @close="closeBattingDataModal"
             @saved="handleBattingDataSaved"
+        />
+
+        <!-- Delete Confirmation Modal -->
+        <QuickAddModal 
+            :is-open="showDeleteModal"
+            :title="t('games.deleteGame')"
+            :label="t('common.deleteConfirm')"
+            mode="confirm"
+            confirm-button-class="btn-secondary"
+            :confirm-text="t('common.delete')"
+            :is-loading="isLoading"
+            @close="showDeleteModal = false"
+            @confirm="confirmDelete"
         />
     </div>
 </template>
