@@ -139,15 +139,12 @@ onMounted(() => {
           </div>
 
           <!-- Filter -->
-          <div class="relative w-full md:w-auto">
-               <select v-model="filterType" class="input-field py-2 px-4 text-sm min-w-[120px] appearance-none pr-8 cursor-pointer bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+          <div class="w-full md:w-auto">
+               <select v-model="filterType" class="input-field py-2 px-4 text-sm min-w-[120px] cursor-pointer w-full">
                   <option value="all">{{ t('masterData.all') }}</option>
                   <option value="1">{{ t('masterData.myTeam') }}</option>
                   <option value="2">{{ t('masterData.opponentTeam') }}</option>
               </select>
-              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
-                  <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
-              </div>
           </div>
         </div>
 
@@ -175,13 +172,10 @@ onMounted(() => {
                     <div class="space-y-2">
                         <label class="text-sm text-gray-400 font-medium">{{ t('masterData.teamType') }}</label>
                         <div class="relative">
-                            <select v-model="newItemType" class="input-field w-full appearance-none pr-8 bg-gray-800">
+                            <select v-model="newItemType" class="input-field w-full">
                                 <option value="1">{{ t('masterData.myTeam') }}</option>
                                 <option value="2">{{ t('masterData.opponentTeam') }}</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
-                            </div>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -221,7 +215,7 @@ onMounted(() => {
       <table class="min-w-[340px] md:min-w-full divide-y divide-gray-700/50 table-fixed">
         <thead>
           <tr>
-            <th class="table-header text-left w-14 md:w-40 px-2 md:px-4 py-2">{{ t('masterData.teamType') }}</th>
+            <th class="table-header text-left w-20 md:w-40 px-2 md:px-4 py-2">{{ t('masterData.teamType') }}</th>
             <th class="table-header text-left px-2 md:px-4 py-2">{{ t('masterData.name') }}</th>
             <th class="table-header w-24 md:w-40 px-2 md:px-4 py-2"></th>
           </tr>
@@ -229,7 +223,7 @@ onMounted(() => {
         <tbody class="divide-y divide-gray-700/50 bg-gray-800/40">
           <tr v-for="item in filteredItems" :key="item.id" class="table-row h-12">
             <!-- Team Type Badge -->
-            <td class="table-cell w-14 md:w-40 px-2 md:px-4 py-2">
+            <td class="table-cell text-center md:text-left w-14 md:w-40 px-2 md:px-4 py-2">
                 <div v-if="editId == item.id" class="relative">
                     <!-- Mobile: Toggle Button (Dot) -->
                     <button 
@@ -245,13 +239,10 @@ onMounted(() => {
 
                     <!-- Desktop: Select Dropdown -->
                     <div class="hidden md:block relative">
-                         <select v-model="editItemType" class="input-field py-1 pl-2 pr-8 text-sm w-full appearance-none" @click.stop>
+                         <select v-model="editItemType" class="input-field py-1 px-2 text-sm w-full" @click.stop>
                             <option value="1">{{ t('masterData.myTeam') }}</option>
                             <option value="2">{{ t('masterData.opponentTeam') }}</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
-                        </div>
                     </div>
                 </div>
                 <template v-else>

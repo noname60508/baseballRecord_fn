@@ -20,16 +20,16 @@ const { isVisible, message, title, handleConfirm, handleCancel } = useConfirm();
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity" @click="handleCancel"></div>
 
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
           <Transition 
             enter-active-class="ease-out duration-300" 
-            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-            enter-to-class="opacity-100 translate-y-0 sm:scale-100" 
+            enter-from-class="opacity-0 scale-95" 
+            enter-to-class="opacity-100 scale-100" 
             leave-active-class="ease-in duration-200" 
-            leave-from-class="opacity-100 translate-y-0 sm:scale-100" 
-            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            leave-from-class="opacity-100 scale-100" 
+            leave-to-class="opacity-0 scale-95"
           >
-            <div class="relative transform overflow-hidden rounded-lg bg-gray-800 border border-gray-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
+            <div class="relative transform overflow-hidden rounded-lg bg-gray-800 border border-gray-700 text-left shadow-xl transition-all w-full max-w-sm">
                 
               <div class="bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
