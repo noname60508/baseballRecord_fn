@@ -8,28 +8,78 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { t } = useI18n();
 
+const isRegistering = ref(false);
+const isForgotPassword = ref(false);
 const account = ref('');
 const password = ref('');
+const confirmPassword = ref('');
+const name = ref('');
+const email = ref('');
 const error = ref('');
 const isLoading = ref(false);
 
 const handleLogin = async () => {
   error.value = '';
+  
+  if (isRegistering.value) {
+    if (password.value !== confirmPassword.value) {
+      error.value = t('login.passwordMismatch');
+      return;
+    }
+  }
+
   isLoading.value = true;
   
   try {
-    // 傳遞 account 而非 email
-    await authStore.login({
-      account: account.value,
-      password: password.value
-    });
-    router.push('/games');
+    if (isForgotPassword.value) {
+      await authStore.forgotPassword({
+        account: account.value,
+        email: email.value
+      });
+      error.value = t('login.forgotPasswordSuccess');
+      // Reset state or leave as is to show success? 
+      // User manual says "subsequently sends a letter", so we just show success.
+    } else if (isRegistering.value) {
+      await authStore.register({
+        account: account.value,
+        password: password.value,
+        name: name.value,
+        email: email.value
+      });
+      isRegistering.value = false;
+      error.value = t('login.registerSuccess');
+      password.value = '';
+      confirmPassword.value = '';
+    } else {
+      await authStore.login({
+        account: account.value,
+        password: password.value
+      });
+      router.push('/games');
+    }
   } catch (err) {
-    console.error('Login error:', err);
-    error.value = '登入失敗，請檢查您的帳號密碼';
+    console.error('Auth error:', err);
+    error.value = err.response?.data?.result || t('common.failed');
   } finally {
     isLoading.value = false;
   }
+};
+
+const toggleMode = (mode) => {
+    error.value = '';
+    password.value = '';
+    confirmPassword.value = '';
+    
+    if (mode === 'register') {
+        isRegistering.value = true;
+        isForgotPassword.value = false;
+    } else if (mode === 'forgot') {
+        isRegistering.value = false;
+        isForgotPassword.value = true;
+    } else {
+        isRegistering.value = false;
+        isForgotPassword.value = false;
+    }
 };
 </script>
 
@@ -52,7 +102,7 @@ const handleLogin = async () => {
             <span class="text-3xl">⚾</span>
           </div>
           <h1 class="text-3xl font-extrabold text-white tracking-wide mb-2 drop-shadow-md">
-            {{ t('login.title') }}
+            {{ isForgotPassword ? t('login.forgotPasswordTitle') : (isRegistering ? t('login.registerButton') : t('login.title')) }}
           </h1>
           <p class="text-blue-200 text-sm font-light tracking-wider uppercase opacity-80">
             Baseball Management System
@@ -62,7 +112,7 @@ const handleLogin = async () => {
         <form @submit.prevent="handleLogin" class="space-y-6">
           <div class="space-y-2">
             <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider ml-1">
-              {{ t('login.account') }}
+              {{ t('login.account') }} <span class="text-red-400">*</span>
             </label>
             <div class="relative group">
               <input 
@@ -75,9 +125,39 @@ const handleLogin = async () => {
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div v-if="isRegistering" class="space-y-2">
             <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider ml-1">
-              {{ t('login.password') }}
+              {{ t('login.name') }} <span class="text-red-400">*</span>
+            </label>
+            <div class="relative group">
+              <input 
+                v-model="name"
+                type="text" 
+                required
+                class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500 backdrop-blur-sm group-hover:border-gray-500"
+                :placeholder="t('login.namePlaceholder')"
+              >
+            </div>
+          </div>
+          
+          <div v-if="isRegistering || isForgotPassword" class="space-y-2">
+            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider ml-1">
+              {{ t('login.email') }} <span v-if="isForgotPassword" class="text-red-400">*</span>
+            </label>
+            <div class="relative group">
+              <input 
+                v-model="email"
+                type="text" 
+                :required="isForgotPassword"
+                class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500 backdrop-blur-sm group-hover:border-gray-500"
+                :placeholder="t('login.emailPlaceholder')"
+              >
+            </div>
+          </div>
+
+          <div v-if="!isForgotPassword" class="space-y-2">
+            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider ml-1">
+              {{ t('login.password') }} <span class="text-red-400">*</span>
             </label>
             <div class="relative group">
               <input 
@@ -90,8 +170,23 @@ const handleLogin = async () => {
             </div>
           </div>
 
-          <div v-if="error" class="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-            <p class="text-red-400 text-sm text-center font-medium">
+           <div v-if="isRegistering" class="space-y-2">
+            <label class="block text-xs font-semibold text-blue-300 uppercase tracking-wider ml-1">
+              {{ t('login.confirmPassword') }} <span class="text-red-400">*</span>
+            </label>
+            <div class="relative group">
+              <input 
+                v-model="confirmPassword"
+                type="password" 
+                required
+                class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500 backdrop-blur-sm group-hover:border-gray-500"
+                :placeholder="t('login.confirmPasswordPlaceholder')"
+              >
+            </div>
+          </div>
+
+          <div v-if="error" :class="(error === t('login.registerSuccess') || error === t('login.forgotPasswordSuccess')) ? 'bg-green-500/10 border-green-500/50' : 'bg-red-500/10 border-red-500/50'" class="border rounded-lg p-3">
+            <p :class="(error === t('login.registerSuccess') || error === t('login.forgotPasswordSuccess')) ? 'text-green-400' : 'text-red-400'" class="text-sm text-center font-medium">
               {{ error }}
             </p>
           </div>
@@ -108,15 +203,29 @@ const handleLogin = async () => {
               </svg>
               {{ t('common.loading') }}
             </span>
-            <span v-else>{{ t('login.loginButton') }}</span>
+            <span v-else>
+                {{ isForgotPassword ? t('common.confirm') : (isRegistering ? t('login.registerButton') : t('login.loginButton')) }}
+            </span>
           </button>
-        </form>
-        
-        <div class="mt-8 text-center">
-          <p class="text-gray-400 text-xs">
-            &copy; {{ new Date().getFullYear() }} Diamond Records
-          </p>
+
+           <div class="flex flex-col items-center gap-3 pt-2">
+            <button 
+                v-if="!isForgotPassword"
+                type="button"
+                @click="toggleMode(isRegistering ? 'login' : 'register')"
+                class="text-sm text-blue-300 hover:text-white underline transition-colors"
+                >
+                {{ isRegistering ? t('login.switchToLogin') : t('login.switchToRegister') }}
+            </button>
+            <button 
+                type="button"
+                @click="toggleMode(isForgotPassword ? 'login' : 'forgot')"
+                class="text-sm text-blue-300 hover:text-white underline transition-colors"
+                >
+                {{ isForgotPassword ? t('login.switchToLogin') : t('login.forgotPassword') }}
+            </button>
         </div>
+        </form>
       </div>
     </div>
   </div>

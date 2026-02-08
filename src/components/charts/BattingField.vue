@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   data: {
@@ -9,117 +10,89 @@ const props = defineProps({
   }
 });
 
-// Coordinate system for 500x500 viewBox
-// Home plate at (250, 450)
+const { t } = useI18n();
+
 const visualPositions = [
-  { key: 'P', label: 'P', x: 250, y: 344 },
-  { key: 'C', label: 'C', x: 250, y: 475 },
-  { key: '1B', alt: 'B1', label: '1B', x: 356, y: 344 },
-  { key: '2B', alt: 'B2', label: '2B', x: 250, y: 238 },
-  { key: '3B', alt: 'B3', label: '3B', x: 144, y: 344 },
-  { key: 'SS', label: 'SS', x: 190, y: 280 },
-  { key: 'LF', label: 'LF', x: 80, y: 150 },
-  { key: 'CF', label: 'CF', x: 250, y: 80 },
-  { key: 'RF', label: 'RF', x: 420, y: 150 },
-  { key: 'LCF', label: 'LCF', x: 165, y: 110 },
-  { key: 'RCF', label: 'RCF', x: 335, y: 110 }
+  // Infield
+  { key: '1B', alt: 'B1', label: '1B', top: '50%', left: '68%' },
+  { key: '2B', alt: 'B2', label: '2B', top: '42%', left: '57%' },
+  { key: '3B', alt: 'B3', label: '3B', top: '50%', left: '32%' },
+  { key: 'SS', label: 'SS', top: '42%', left: '43%' },
+  // Outfield
+  { key: 'LF', label: 'LF', top: '33%', left: '15%' },
+  { key: 'LCF', label: 'LCF', top: '22%', left: '30%' },
+  { key: 'CF', label: 'CF', top: '17%', left: '50%' },
+  { key: 'RCF', label: 'RCF', top: '22%', left: '70%' },
+  { key: 'RF', label: 'RF', top: '33%', left: '85%' },
 ];
 
 const getStat = (pos) => {
-  return props.data[pos.key] || props.data[pos.alt] || { sum: 0 };
+  return props.data[pos.key] || props.data[pos.alt] || { sum: 0, hit: 0, locationAVG: 0, percentage: 0 };
 };
 
-const getColor = (sum) => {
-  if (!sum) return 'rgba(255, 255, 255, 0.3)';
-  if (sum < 3) return '#60A5FA'; 
-  if (sum < 6) return '#34D399'; 
-  return '#F87171'; 
+const getColor = (percentage) => {
+  if (!percentage) return 'rgba(107, 114, 128, 0.8)'; // Gray for 0%
+  if (percentage < 10) return 'rgba(59, 130, 246, 0.9)'; // Blue for low
+  if (percentage < 20) return 'rgba(16, 185, 129, 0.9)'; // Green for medium
+  return 'rgba(239, 68, 68, 0.9)'; // Red for high
 };
 </script>
 
 <template>
-  <div class="relative w-full aspect-square max-w-[500px] mx-auto rounded-xl overflow-hidden shadow-2xl border-4 border-[#006400]">
-    <svg viewBox="0 0 500 500" class="w-full h-full bg-[#008000]">
-      
-      <!-- Outfield Grass -->
-      <path d="M 0 200 Q 250 -50 500 200 L 500 500 L 0 500 Z" fill="#008000" stroke="none" />
-      
-      <!-- Foul Lines (White) -->
-      <line x1="250" y1="450" x2="0" y2="200" stroke="white" stroke-width="3" stroke-opacity="0.9" />
-      <line x1="250" y1="450" x2="500" y2="200" stroke="white" stroke-width="3" stroke-opacity="0.9" />
-      
-      <!-- Outfield Warning Track Arc -->
-      <path d="M 0 200 Q 250 -50 500 200" fill="none" stroke="white" stroke-width="2" stroke-opacity="0.6" />
+  <div class="relative w-full aspect-square max-w-[500px] mx-auto">
+    <!-- Background Layer (Clipped for Image) -->
+    <div class="absolute inset-0 rounded-xl">
+        <img 
+        src="/baseballField.png" 
+        alt="Baseball Field" 
+        class="w-full h-full object-cover pointer-events-none transform scale-125 origin-center"
+        />
+    </div>
+    
+    <!-- Data Layer (Visible for Tooltips) -->
+    <!-- Note: We use the same coordinate system relative to the container, 
+         but since the background is zoomed, visualPositions need to align with the zoomed field.
+         However, visualPositions are % of the CONTAINER. 
+         If the image is zoomed 1.25x from center, the "Field" features move away from center.
+         We are adjusting the positions manually effectively by trial, 
+         but ideally we would scale this container too if we wanted perfect lock.
+         Let's try scaling this container too to match the background zoom. 
+    -->
+    <div class="absolute inset-0 w-full h-full transform scale-125 origin-center pointer-events-none">
+        <div v-for="pos in visualPositions" :key="pos.key" 
+            class="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer pointer-events-auto hover:z-50"
+            :style="{ top: pos.top, left: pos.left }"
+        >
+        <!-- Stat Circle -->
+        <div 
+            class="flex items-center justify-center w-12 h-12 rounded-full shadow-lg border-2 border-white transition-transform transform group-hover:scale-110"
+            :style="{ backgroundColor: getColor(getStat(pos).percentage) }"
+        >
+            <span class="text-white font-bold text-xs md:text-sm drop-shadow-md">
+            {{ getStat(pos).percentage }}%
+            </span>
+        </div>
 
-      <!-- Infield Dirt (Brown Arc) -->
-      <!-- Creating a realistic dirt arc around the diamond -->
-      <path 
-        d="M 250 450 
-           Q 100 400 90 290
-           Q 90 240 150 180
-           Q 250 80 350 180
-           Q 410 240 410 290
-           Q 400 400 250 450 Z" 
-        fill="#a0522d" 
-        stroke="#8b4513" 
-        stroke-width="2"
-      />
+        <!-- Tooltip -->
+        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-900/95 text-white text-xs rounded-lg p-3 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 backdrop-blur-sm border border-gray-700">
+            <div class="font-bold text-center border-b border-gray-700 pb-1 mb-1 text-yellow-400 text-sm">
+                {{ pos.label }}
+            </div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <span class="text-gray-400">{{ t('batting.sum') }}:</span>
+                <span class="text-right font-mono">{{ getStat(pos).sum }}</span>
+                
+                <span class="text-gray-400">{{ t('batting.hit') }}:</span>
+                <span class="text-right font-mono">{{ getStat(pos).hit }}</span>
+                
+                <span class="text-gray-400">{{ t('batting.locationAVG') }}:</span>
+                <span class="text-right font-mono">{{ Number(getStat(pos).locationAVG).toFixed(3).replace(/^0+/, '') }}</span>
 
-      <!-- Infield Grass (Diamond Shape) -->
-      <!-- Diamond centered at pitcher's mound area -->
-      <path 
-        d="M 250 344 
-           L 356 344 
-           L 250 238 
-           L 144 344 Z" 
-        fill="#008000" 
-        stroke="none"
-      />
-
-      <!-- Base Paths (Dirt lines) -->
-      <line x1="250" y1="450" x2="356" y2="344" stroke="#8b4513" stroke-width="4" />
-      <line x1="356" y1="344" x2="250" y2="238" stroke="#8b4513" stroke-width="4" />
-      <line x1="250" y1="238" x2="144" y2="344" stroke="#8b4513" stroke-width="4" />
-      <line x1="144" y1="344" x2="250" y2="450" stroke="#8b4513" stroke-width="4" />
-      
-      <!-- Bases (White squares, rotated 45°) -->
-      <rect x="352" y="340" width="8" height="8" transform="rotate(45 356 344)" fill="white" stroke="#ddd" stroke-width="1" />
-      <rect x="246" y="234" width="8" height="8" transform="rotate(45 250 238)" fill="white" stroke="#ddd" stroke-width="1" />
-      <rect x="140" y="340" width="8" height="8" transform="rotate(45 144 344)" fill="white" stroke="#ddd" stroke-width="1" />
-      
-      <!-- Home Plate (Pentagon shape) -->
-      <path d="M 250 450 L 245 445 L 245 440 L 255 440 L 255 445 Z" fill="white" stroke="#ddd" stroke-width="1" />
-
-      <!-- Pitcher's Mound -->
-      <circle cx="250" cy="344" r="10" fill="#a0522d" stroke="#8b4513" stroke-width="2" />
-      <rect x="247" y="342" width="6" height="4" fill="white" />
-
-      <!-- Data Points (Dots with counts) -->
-      <g v-for="pos in visualPositions" :key="pos.key" class="group">
-          <circle 
-            :cx="pos.x" 
-            :cy="pos.y" 
-            r="16" 
-            :fill="getColor(getStat(pos).sum)"
-            class="transition-all duration-300 cursor-pointer shadow-lg"
-            stroke="rgba(0,0,0,0.3)"
-            stroke-width="2"
-          >
-            <title>{{ pos.label }}: {{ getStat(pos).sum }}</title>
-          </circle>
-          
-          <!-- Count text inside dot -->
-          <text 
-            :x="pos.x" 
-            :y="pos.y" 
-            text-anchor="middle" 
-            dominant-baseline="middle" 
-            fill="white" 
-            class="text-[14px] font-black pointer-events-none select-none drop-shadow-md font-mono"
-          >
-            {{ getStat(pos).sum || 0 }}
-          </text>
-      </g>
-    </svg>
+                <span class="text-gray-400">{{ t('batting.percentage') }}:</span>
+                <span class="text-right font-mono font-bold text-yellow-500">{{ getStat(pos).percentage }}%</span>
+            </div>
+        </div>
+        </div>
+    </div>
   </div>
 </template>

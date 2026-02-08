@@ -122,7 +122,6 @@ const getResultText = (result) => {
 
 const formatBattingSummary = (batterResult) => {
     if (!batterResult) return '';
-    console.log(batterResult);
     const r = batterResult;
     const hits = (Number(r.single) || 0) + (Number(r.double) || 0) + (Number(r.triple) || 0) + (Number(r.HR) || 0);
     let text = `${r.AB || 0} - ${hits} `;
@@ -130,7 +129,6 @@ const formatBattingSummary = (batterResult) => {
     if (Number(r.HR) > 0) text += `, ${r.HR}${t('basic.HR')}`;
     if (Number(r.BB) > 0) text += `, ${r.BB}${t('basic.BB')}`;
     if (Number(r.HBP) > 0) text += `, ${r.HBP}${t('basic.HBP')}`;
-    console.log(text);
     
     return text;
 };

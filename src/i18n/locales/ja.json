@@ -2,9 +2,11 @@
     "basic": {
         "BB": "四球",
         "HBP": "死球",
-        "HR": "本塁打",
-        "year": "年",
-        "month": "月"
+        "prev": "前へ",
+        "next": "次へ",
+        "firstPage": "最初へ",
+        "lastPage": "最後へ",
+        "noData": "データがありません"
     },
     "week": {
         "mon": "月",
@@ -54,7 +56,26 @@
         "password": "パスワード",
         "loginButton": "ログイン",
         "accountPlaceholder": "アカウントを入力",
-        "passwordPlaceholder": "パスワードを入力"
+        "passwordPlaceholder": "パスワードを入力",
+        "registerButton": "登録",
+        "name": "ユーザー名",
+        "namePlaceholder": "ユーザー名を入力してください",
+        "email": "メールアドレス",
+        "emailPlaceholder": "メールアドレスを入力してください",
+        "confirmPassword": "パスワード確認",
+        "confirmPasswordPlaceholder": "パスワードを再入力してください",
+        "switchToRegister": "アカウントをお持ちでないですか？登録へ",
+        "switchToLogin": "アカウントをお持ちですか？ログインへ",
+        "passwordMismatch": "パスワードが一致しません",
+        "registerSuccess": "登録成功、ログインしてください",
+        "forgotPassword": "パスワードを忘れましたか？",
+        "forgotPasswordTitle": "パスワード再設定",
+        "forgotPasswordSuccess": "再設定の案内をメールで送信しました",
+        "resetPasswordTitle": "新しいパスワードを設定",
+        "resetSuccess": "パスワードの再設定が完了しました",
+        "redirectingToLogin": "ログイン画面に移動します...",
+        "invalidResetLink": "無効または期限切れのリンクです",
+        "passwordTooShort": "パスワードは6文字以上で入力してください"
     },
     "games": {
         "title": "試合記録",
@@ -118,9 +139,9 @@
         "OBP": "出塁率",
         "SLG": "長打率",
         "OPS": "OPS",
-        "kPercentage": "三振率",
-        "bbPercentage": "四球率",
-        "sbPercentage": "盗塁成功率",
+        "KPercentage": "三振率",
+        "BBPercentage": "四球率",
+        "SBPercentage": "盗塁成功率",
         "rispAvg": "得点圏打率",
         "history": "打席履歴",
         "pitcher": "投手",
@@ -133,7 +154,14 @@
         "addPa": "打席を追加",
         "requiredToast": "打席結果を選択するか未選択の打席を削除し、再度お試しください。",
         "battingStats": "成績合計",
-        "battingRecords": "試合別打撃成績"
+        "battingRecords": "試合別打撃成績",
+        "chartAnalysis": "チャート分析",
+        "detailedStats": "詳細データ",
+        "distribution": "打球分布",
+        "sum": "数",
+        "hit": "安打数",
+        "locationAVG": "打率",
+        "percentage": "割合"
     },
     "masterData": {
         "title": "マスターデータ管理",
@@ -150,7 +178,8 @@
         "addSeason": "シーズンを追加",
         "addField": "球場を追加"
     },
-    "bip": {
+    "GorF": {
+        "title": "ゴロ/フライ比率",
         "gb": "ゴロ",
         "ld": "ライナー",
         "fb": "フライ",

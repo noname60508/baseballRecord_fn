@@ -13,6 +13,12 @@ const routes = [
         redirect: '/games'
     },
     {
+        path: '/reset-password',
+        name: 'ResetPassword',
+        component: () => import('../views/ResetPassword.vue'),
+        meta: { requiresAuth: false }
+    },
+    {
         path: '/games',
         name: 'Games',
         component: () => import('@/views/games/GameList.vue'),

@@ -34,6 +34,33 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        async register(userData) {
+            try {
+                return await authService.register(userData);
+            } catch (error) {
+                console.error('Registration failed:', error);
+                throw error;
+            }
+        },
+
+        async forgotPassword(data) {
+            try {
+                return await authService.forgotPassword(data);
+            } catch (error) {
+                console.error('Forgot password request failed:', error);
+                throw error;
+            }
+        },
+
+        async resetPassword(data) {
+            try {
+                return await authService.resetForgotPassword(data);
+            } catch (error) {
+                console.error('Reset password request failed:', error);
+                throw error;
+            }
+        },
+
         async logout() {
             try {
                 await authService.logout();

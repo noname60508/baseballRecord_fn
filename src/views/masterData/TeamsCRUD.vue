@@ -69,7 +69,6 @@ const handleCreate = async () => {
 };
 
 const startEdit = (item) => {
-  console.log('Start edit:', item);
   editId.value = item.id;
   editItemName.value = item.name;
   editItemType.value = item.teamtype;
