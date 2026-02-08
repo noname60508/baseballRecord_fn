@@ -88,7 +88,7 @@ const confirm = () => {
               @keyup.enter="confirm"
               :disabled="isLoading"
               autofocus
-              placeholder="請輸入名稱..."
+              :placeholder="t('common.enterNamePlaceholder')"
             >
           </div>
         </div>

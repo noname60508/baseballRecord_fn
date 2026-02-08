@@ -355,7 +355,7 @@ const handleClose = () => {
                                 <!-- Memo -->
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.memo') }}</label>
-                                    <textarea v-model="formData.memo" rows="3" class="input-field" placeholder="備註..."></textarea>
+                                    <textarea v-model="formData.memo" rows="3" class="input-field" :placeholder="t('games.memoPlaceholder')"></textarea>
                                 </div>
                             </div>
                         </form>
@@ -382,8 +382,8 @@ const handleClose = () => {
     <!-- Quick Add Modals -->
     <QuickAddModal :is-open="showSeasonModal" :title="t('masterData.addSeason')" :label="t('masterData.name')" :is-loading="modalLoading" @close="showSeasonModal = false" @confirm="(name) => handleQuickAdd('season', name)" />
     <QuickAddModal :is-open="showFieldModal" :title="t('masterData.addField')" :label="t('masterData.name')" :is-loading="modalLoading" @close="showFieldModal = false" @confirm="(name) => handleQuickAdd('field', name)" />
-    <QuickAddModal :is-open="showMyTeamModal" title="新增我方球隊" :label="t('masterData.name')" :is-loading="modalLoading" @close="showMyTeamModal = false" @confirm="(name) => handleQuickAdd('myTeam', name)" />
-    <QuickAddModal :is-open="showOpponentTeamModal" title="新增對方球隊" :label="t('masterData.name')" :is-loading="modalLoading" @close="showOpponentTeamModal = false" @confirm="(name) => handleQuickAdd('opponentTeam', name)" />
+    <QuickAddModal :is-open="showMyTeamModal" :title="t('games.addMyTeam')" :label="t('masterData.name')" :is-loading="modalLoading" @close="showMyTeamModal = false" @confirm="(name) => handleQuickAdd('myTeam', name)" />
+    <QuickAddModal :is-open="showOpponentTeamModal" :title="t('games.addOpponentTeam')" :label="t('masterData.name')" :is-loading="modalLoading" @close="showOpponentTeamModal = false" @confirm="(name) => handleQuickAdd('opponentTeam', name)" />
 </template>
 
 <style scoped>

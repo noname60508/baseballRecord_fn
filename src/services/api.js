@@ -3,7 +3,7 @@ import { useToast } from '@/composables/useToast';
 
 // 建立 Axios 實例
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ api.interceptors.response.use(
 
         // 處理 401 未授權錯誤
         if (error.response && error.response.status === 401) {
-            // 清除本地儲存的驗證資
+            // 清除本地儲存的驗證資料
             localStorage.removeItem('auth_token');
             localStorage.removeItem('userId');
 

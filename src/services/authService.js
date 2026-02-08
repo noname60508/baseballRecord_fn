@@ -22,12 +22,12 @@ export default {
     },
 
     // 忘記密碼
-    forgotPassword(params) {
-        return api.get('/forgotPassword', { params });
+    forgotPassword(data) {
+        return api.post('/forgotPassword', data);
     },
 
     // 重設密碼
-    resetForgotPassword(params) {
-        return api.get('/resetForgotPassword', { params });
+    resetForgotPassword(data) {
+        return api.post('/resetForgotPassword', data);
     }
 };

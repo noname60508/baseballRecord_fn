@@ -2,11 +2,9 @@
     "basic": {
         "BB": "四球",
         "HBP": "死球",
-        "prev": "前へ",
-        "next": "次へ",
-        "firstPage": "最初へ",
-        "lastPage": "最後へ",
-        "noData": "データがありません"
+        "HR": "本塁打",
+        "year": "年",
+        "month": "月"
     },
     "week": {
         "mon": "月",
@@ -19,6 +17,7 @@
     },
     "common": {
         "appName": "野球記録管理システム",
+        "appSubtitle": "野球記録管理システム",
         "login": "ログイン",
         "logout": "ログアウト",
         "save": "保存",
@@ -27,6 +26,8 @@
         "edit": "編集",
         "add": "追加",
         "search": "検索",
+        "searchButton": "検索",
+        "resetSearch": "条件をクリア",
         "confirm": "確認",
         "back": "戻る",
         "loading": "読み込み中...",
@@ -37,7 +38,9 @@
         "lastPage": "最後",
         "failed": "失敗",
         "deleteConfirm": "本当に削除しますか？",
-        "required": "必須"
+        "required": "必須",
+        "enterNamePlaceholder": "名前を入力してください...",
+        "clearSelection": "選択をクリア"
     },
     "nav": {
         "games": "試合記録",
@@ -104,14 +107,17 @@
         "tie": "和",
         "selectStartDate": "開始日を選択してください",
         "selectEndDate": "終了日を選択してください",
-        "rangeSelected": "範囲選擇済み",
+        "rangeSelected": "範囲選択済み",
         "dateRange": "日付範囲",
         "basicInfo": "基本情報",
         "myScore": "自チーム得点",
         "opponentScore": "相手チーム得点",
         "pa": "打席",
         "seasonIdRequired": "シーズンを選択してください",
-        "teamIdRequired": "チームを選択してください"
+        "teamIdRequired": "チームを選択してください",
+        "addMyTeam": "自チームを追加",
+        "addOpponentTeam": "相手チームを追加",
+        "memoPlaceholder": "備考..."
     },
     "batting": {
         "title": "打撃成績",

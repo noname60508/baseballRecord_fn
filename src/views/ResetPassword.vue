@@ -50,9 +50,9 @@ const handleReset = async () => {
     setTimeout(() => {
       router.push('/login');
     }, 3000);
-  } catch (err) {
-    console.error('Reset failed:', err);
-    error.value = err.response?.data?.result || t('common.failed');
+  } catch (error) {
+    console.error('Reset failed:', error);
+    error.value = error.response?.data?.result || t('common.failed');
   } finally {
     isLoading.value = false;
   }

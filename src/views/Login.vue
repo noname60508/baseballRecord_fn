@@ -57,9 +57,9 @@ const handleLogin = async () => {
       });
       router.push('/games');
     }
-  } catch (err) {
-    console.error('Auth error:', err);
-    error.value = err.response?.data?.result || t('common.failed');
+  } catch (error) {
+    console.error('Auth error:', error);
+    error.value = error.response?.data?.result || t('common.failed');
   } finally {
     isLoading.value = false;
   }
@@ -105,7 +105,7 @@ const toggleMode = (mode) => {
             {{ isForgotPassword ? t('login.forgotPasswordTitle') : (isRegistering ? t('login.registerButton') : t('login.title')) }}
           </h1>
           <p class="text-blue-200 text-sm font-light tracking-wider uppercase opacity-80">
-            Baseball Management System
+            {{ t('common.appSubtitle') }}
           </p>
         </div>
 

@@ -43,12 +43,6 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/batting/records',
-        name: 'BattingRecords',
-        component: () => import('@/views/batting/BattingStatistics.vue'),
-        meta: { requiresAuth: true }
-    },
-    {
         path: '/batting/statistics',
         name: 'BattingStatistics',
         component: () => import('@/views/batting/BattingStatistics.vue'),

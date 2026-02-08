@@ -688,7 +688,7 @@ onMounted(() => {
                             v-model="editedGameData.memo" 
                             rows="3" 
                             class="input-field"
-                            :placeholder="t('games.memo') + '...'"
+                            :placeholder="t('games.memoPlaceholder')"
                         ></textarea>
                     </div>
                 </div>

@@ -188,7 +188,7 @@ onMounted(async () => {
                   type="button" 
                   class="px-4 bg-gray-700 hover:bg-blue-600 text-white rounded-xl transition-colors shadow-lg border border-white/10"
                   @click="showSeasonModal = true"
-                  title="新增賽季"
+                  :title="t('masterData.addSeason')"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -217,7 +217,7 @@ onMounted(async () => {
                   type="button" 
                   class="px-4 bg-gray-700 hover:bg-blue-600 text-white rounded-xl transition-colors shadow-lg border border-white/10"
                   @click="showFieldModal = true"
-                  title="新增場地"
+                  :title="t('masterData.addField')"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -249,7 +249,7 @@ onMounted(async () => {
                       type="button" 
                       class="px-4 bg-gray-700 hover:bg-blue-600 text-white rounded-xl transition-colors shadow-lg border border-white/10"
                       @click="showMyTeamModal = true"
-                      title="新增我方球隊"
+                      :title="t('games.addMyTeam')"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -278,7 +278,7 @@ onMounted(async () => {
                       type="button" 
                       class="px-4 bg-gray-700 hover:bg-blue-600 text-white rounded-xl transition-colors shadow-lg border border-white/10"
                       @click="showOpponentTeamModal = true"
-                      title="新增對方球隊"
+                      :title="t('games.addOpponentTeam')"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -456,7 +456,7 @@ onMounted(async () => {
                 v-model="formData.memo"
                 rows="3"
                 class="input-field"
-                placeholder="備註..."
+                :placeholder="t('games.memoPlaceholder')"
             ></textarea>
           </div>
         </div>
@@ -502,7 +502,7 @@ onMounted(async () => {
 
     <QuickAddModal
       :is-open="showMyTeamModal"
-      :title="'新增我方球隊'"
+      :title="t('games.addMyTeam')"
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showMyTeamModal = false"
@@ -511,7 +511,7 @@ onMounted(async () => {
 
     <QuickAddModal
       :is-open="showOpponentTeamModal"
-      :title="'新增對方球隊'"
+      :title="t('games.addOpponentTeam')"
       :label="t('masterData.name')"
       :is-loading="modalLoading"
       @close="showOpponentTeamModal = false"
