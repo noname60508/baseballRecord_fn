@@ -109,9 +109,9 @@ const handleSubmit = async () => {
             memo: formData.value.memo
         };
 
-        await gameService.createGame(payload);
+        const response = await gameService.createGame(payload);
         toastSuccess(t('games.addGame') + ' ' + t('common.success'));
-        emit('saved');
+        emit('saved', response.data.result.id);
         emit('close');
     } catch (error) {
         console.error('Failed to save game:', error);

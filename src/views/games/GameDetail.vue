@@ -376,7 +376,7 @@ onMounted(() => {
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center">
-                <button @click="router.push('/games')" class="p-2 mr-4 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                <button @click="router.back()" class="p-2 mr-4 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -709,22 +709,22 @@ onMounted(() => {
                                 <tbody class="divide-y divide-white/5 bg-gray-800/40">
                                     <!-- Dynamic rows for stats: All 16 fields in requested order -->
                                     <tr v-for="stat in [
-                                        { key: 'pa', label: t('batting.pa') },
-                                        { key: 'ab', label: t('batting.atBats') },
-                                        { key: 'rbi', label: t('batting.rbi') },
-                                        { key: 'r', label: t('batting.r') },
+                                        { key: 'pa', label: t('batting.PA') },
+                                        { key: 'ab', label: t('batting.AB') },
+                                        { key: 'rbi', label: t('batting.RBI') },
+                                        { key: 'r', label: t('batting.R') },
                                         { key: 'single', label: t('batting.single') },
                                         { key: 'double', label: t('batting.double') },
                                         { key: 'triple', label: t('batting.triple') },
-                                        { key: 'hr', label: t('batting.hr') },
-                                        { key: 'bb', label: t('batting.bb') },
-                                        { key: 'ibb', label: t('batting.ibb') },
-                                        { key: 'hbp', label: t('batting.hbp') },
-                                        { key: 'so', label: t('batting.so') },
-                                        { key: 'sh', label: t('batting.sh') },
-                                        { key: 'sf', label: t('batting.sf') },
-                                        { key: 'sb', label: t('batting.sb') },
-                                        { key: 'cs', label: t('batting.cs') }
+                                        { key: 'hr', label: t('batting.HR') },
+                                        { key: 'bb', label: t('batting.BB') },
+                                        { key: 'ibb', label: t('batting.IBB') },
+                                        { key: 'hbp', label: t('batting.HBP') },
+                                        { key: 'so', label: t('batting.SO') },
+                                        { key: 'sh', label: t('batting.SH') },
+                                        { key: 'sf', label: t('batting.SF') },
+                                        { key: 'sb', label: t('batting.SB') },
+                                        { key: 'cs', label: t('batting.CS') }
                                     ]" :key="stat.key" class="hover:bg-white/5 transition-colors group">
                                         <td class="px-6 py-3.5 text-sm md:text-base font-bold text-gray-500 group-hover:text-gray-300 transition-colors uppercase tracking-[0.05em]">
                                             {{ stat.label }}

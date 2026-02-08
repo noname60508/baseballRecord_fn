@@ -3,13 +3,29 @@ import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import battingService from '@/services/battingService';
 import masterDataService from '@/services/masterDataService';
-import DateRangePicker from '@/components/DateRangePicker.vue';
+import SearchBar from '@/components/SearchBar.vue';
+import BipChart from '@/components/charts/BipChart.vue';
+import BattingField from '@/components/charts/BattingField.vue';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useGameListStore } from '@/stores/gameList';
+import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
+const router = useRouter();
 
-const stats = ref(null);
-const records = ref([]);
+// Data State
+const summaryStats = ref(null);
+const gameRecords = ref([]);
+const pagination = ref({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    perPage: 10
+});
 const isLoading = ref(true);
+const isRecordsLoading = ref(false);
+const gameListStore = useGameListStore();
+const { searchForm, currentPage, isSearchOpen } = storeToRefs(gameListStore);
 
 // Master Data
 const seasons = ref([]);
@@ -17,17 +33,7 @@ const fields = ref([]);
 const myTeams = ref([]);
 const opponentTeams = ref([]);
 
-// Search State
-const isSearchOpen = ref(false);
-const showDatePicker = ref(false);
-const searchForm = ref({
-    Z00_season_id: '',
-    Z00_team_id: '',
-    Z00_team_id_enemy: '',
-    Z00_field_id: '',
-    gameDate: [null, null]
-});
-
+// Fetch Master Data
 const fetchMasterData = async () => {
     try {
         const [seasonsRes, fieldsRes, myTeamsRes, opponentTeamsRes] = await Promise.all([
@@ -45,39 +51,58 @@ const fetchMasterData = async () => {
     }
 };
 
-const fetchStats = async () => {
-  isLoading.value = true;
-  try {
+const getQueryParams = () => {
     const params = { ...searchForm.value };
-    
-    // Clean empty params
     Object.keys(params).forEach(key => {
         if (params[key] === '' || params[key] === null || params[key] === undefined) {
             delete params[key];
         }
-        // check for gameDate array
         if (key === 'gameDate' && (!params[key][0] && !params[key][1])) {
             delete params[key];
         }
     });
-
-    // Parallel fetch for stats and records
-    const [statsRes, recordsRes] = await Promise.all([
-        battingService.getBattingStatistics(params),
-        battingService.getBattingRecords(params)
-    ]);
-    
-    stats.value = statsRes.data;
-    records.value = recordsRes.data;
-  } catch (error) {
-    console.error('Failed to fetch data:', error);
-  } finally {
-    isLoading.value = false;
-  }
+    return params;
 };
 
-const handleSearch = () => {
-    fetchStats();
+const fetchSummary = async () => {
+    const params = getQueryParams();
+    const res = await battingService.getBattingStatistics(params);
+    summaryStats.value = res.data.result;
+};
+
+const fetchRecords = async (page = 1) => {
+    isRecordsLoading.value = true;
+    try {
+        const params = { ...getQueryParams(), page };
+        const res = await battingService.getBattingRecords(params);
+        if (res.data.result) {
+            gameRecords.value = res.data.result.data || [];
+            pagination.value = {
+                currentPage: res.data.result.current_page || page,
+                totalPages: res.data.result.total_pages || 1,
+                totalItems: res.data.result.total || 0,
+                perPage: res.data.result.paginate || 10
+            };
+        } else {
+             gameRecords.value = [];
+        }
+    } catch (error) {
+        console.error('Failed to fetch records:', error);
+    } finally {
+        isRecordsLoading.value = false;
+    }
+};
+
+const handleSearch = async () => {
+    isLoading.value = true;
+    try {
+        await Promise.all([fetchSummary(), fetchRecords(1)]);
+        isSearchOpen.value = false;
+    } catch (error) {
+        console.error('Search failed:', error);
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 const clearSearch = () => {
@@ -86,277 +111,286 @@ const clearSearch = () => {
         Z00_team_id: '',
         Z00_team_id_enemy: '',
         Z00_field_id: '',
+        gameResult: '',
         gameDate: [null, null]
     };
-    fetchStats();
 };
 
-const updateDateRange = (newRange) => {
-    searchForm.value.gameDate = newRange;
-    showDatePicker.value = false;
+const changePage = (page) => {
+    if (page >= 1 && page <= pagination.value.totalPages) {
+        fetchRecords(page);
+    }
 };
 
-const formatDateDisplay = (start, end) => {
-    if (!start && !end) return '選擇日期範圍';
-    if (start && !end) return `${start} ~`;
-    if (!start && end) return `~ ${end}`;
-    if (start === end) return start;
-    return `${start} ~ ${end}`;
+const goToGame = (gameId) => {
+    router.push(`/games/${gameId}`);
 };
 
-onMounted(() => {
-  fetchMasterData();
-  fetchStats();
+onMounted(async () => {
+    await fetchMasterData();
+    handleSearch();
+});
+
+// Clear search form when leaving GameList (except when going to game detail)
+onBeforeRouteLeave((to, from) => {
+    // Check if NOT going to a game detail page
+    if (!to.path.startsWith('/games/')) {
+        gameListStore.resetSearchForm();
+    }
 });
 </script>
 
 <template>
-  <div class="space-y-8">
-    <h1 class="page-title !mb-0">
-      <span class="text-purple-500">📈</span>
-      {{ t('batting.title') }} - {{ t('nav.battingStats') }}
-    </h1>
-
-    <!-- Filter Toggle -->
-    <div 
-        @click="isSearchOpen = !isSearchOpen"
-        class="flex items-center gap-2 cursor-pointer select-none group w-fit"
-    >
-        <div class="p-1.5 rounded bg-gray-800/50 group-hover:bg-blue-500/20 transition-colors">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300 text-gray-400 group-hover:text-blue-400" :class="isSearchOpen ? 'rotate-0' : '-rotate-90'" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-        </div>
-        <span class="text-xl font-bold text-gray-200 group-hover:text-white transition-colors">搜尋</span>
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center bg-gray-800/40 backdrop-blur-md p-4 rounded-2xl border border-white/5 shadow-lg gap-4">
+      <h1 class="page-title !mb-0 text-xl md:text-2xl w-full md:w-auto text-left flex items-center gap-2">
+         <span class="text-purple-500">📈</span>
+         <span>{{ t('batting.title') }} - {{ t('nav.battingStats') }}</span>
+      </h1>
     </div>
 
-    <!-- Search Form -->
-    <div v-show="isSearchOpen" class="bg-gray-800/30 border border-white/5 rounded-2xl p-6 transition-all duration-300 shadow-inner">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-             <!-- Season -->
-            <div class="space-y-1">
-                <label class="text-sm text-gray-400 ml-1">{{ t('games.season') }}</label>
-                <div class="relative">
-                    <select v-model="searchForm.Z00_season_id" class="input-field appearance-none cursor-pointer">
-                        <option value="">全部賽季</option>
-                        <option v-for="s in seasons" :key="s.id" :value="s.id">{{ s.name }}</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
-            </div>
+    <!-- Search Bar Component -->
+    <SearchBar
+        v-model="searchForm"
+        v-model:is-open="isSearchOpen"
+        :seasons="seasons"
+        :my-teams="myTeams"
+        :opponent-teams="opponentTeams"
+        :fields="fields"
+        :show-game-result="true"
+        @search="handleSearch"
+        @clear="clearSearch"
+    />
 
-             <!-- My Team -->
-            <div class="space-y-1">
-                <label class="text-sm text-gray-400 ml-1">{{ t('games.myTeam') }}</label>
-                 <div class="relative">
-                    <select v-model="searchForm.Z00_team_id" class="input-field appearance-none cursor-pointer">
-                        <option value="">全部我方球隊</option>
-                        <option v-for="t in myTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-                    </select>
-                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                 </div>
-            </div>
-
-            <!-- Opponent Team -->
-            <div class="space-y-1">
-                <label class="text-sm text-gray-400 ml-1">{{ t('games.opponentTeam') }}</label>
-                 <div class="relative">
-                    <select v-model="searchForm.Z00_team_id_enemy" class="input-field appearance-none cursor-pointer">
-                        <option value="">全部對手球隊</option>
-                        <option v-for="t in opponentTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-                    </select>
-                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                 </div>
-            </div>
-
-             <!-- Field -->
-            <div class="space-y-1">
-                <label class="text-sm text-gray-400 ml-1">{{ t('games.field') }}</label>
-                 <div class="relative">
-                    <select v-model="searchForm.Z00_field_id" class="input-field appearance-none cursor-pointer">
-                        <option value="">全部場地</option>
-                         <option v-for="f in fields" :key="f.id" :value="f.id">{{ f.name }}</option>
-                    </select>
-                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                 </div>
-            </div>
-
-             <!-- Date Range (Custom) -->
-            <div class="space-y-1 md:col-span-2 lg:col-span-2">
-                <label class="text-sm text-gray-400 ml-1">{{ t('games.date') }}</label>
-                 <div class="relative">
-                    <button 
-                        @click="showDatePicker = !showDatePicker"
-                        class="input-field w-full text-left flex items-center justify-between"
-                        :class="{'text-gray-400': !searchForm.gameDate[0] && !searchForm.gameDate[1]}"
-                    >
-                        <span>{{ formatDateDisplay(searchForm.gameDate[0], searchForm.gameDate[1]) }}</span>
-                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </button>
-
-                    <!-- Date Range Picker Component -->
-                    <div v-if="showDatePicker" class="absolute top-full left-0 z-50 mt-2">
-                        <DateRangePicker 
-                            :modelValue="searchForm.gameDate"
-                            @update:modelValue="updateDateRange"
-                            @close="showDatePicker = false"
-                        />
-                    </div>
-                    
-                    <!-- Backdrop to close -->
-                    <div v-if="showDatePicker" @click="showDatePicker = false" class="fixed inset-0 z-40 bg-transparent"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="flex justify-end gap-3 mt-6 border-t border-white/5 pt-4">
-             <button @click="clearSearch" class="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm">清除條件</button>
-             <button @click="handleSearch" class="btn-primary flex items-center gap-2 px-6">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                查詢數據
-             </button>
-        </div>
-    </div>
-
+    <!-- Loading State -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 space-y-4">
       <div class="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
       <p class="text-gray-400 font-medium animate-pulse">{{ t('common.loading') }}</p>
     </div>
 
-    <div v-else-if="!stats" class="flex flex-col items-center justify-center py-20 bg-gray-800/30 rounded-2xl border border-white/5 border-dashed">
+    <!-- Content -->
+    <div v-else-if="summaryStats" class="space-y-8 animate-fade-in pb-20">
+
+      <!-- 1. Statistics Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="stats-card border-t-4 border-t-blue-500">
+             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.AVG') }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.AVG }}</div>
+        </div>
+        <div class="stats-card border-t-4 border-t-purple-500">
+             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.OPS') }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OPS }}</div>
+        </div>
+        <div class="stats-card border-t-4 border-t-green-500">
+             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.OBP') }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OBP }}</div>
+        </div>
+        <div class="stats-card border-t-4 border-t-red-500">
+             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.SLG') }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.SLG }}</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+         <div class="stats-card">
+             <div class="text-gray-400 text-xs">{{ t('batting.rispAvg') }}</div>
+             <div class="text-2xl font-bold text-yellow-400 font-mono">{{ summaryStats.statistics.RISP_AVG }}</div>
+         </div>
+          <div class="stats-card">
+             <div class="text-gray-400 text-xs">{{ t('batting.kPercentage') }}</div>
+             <div class="text-2xl font-bold text-gray-200 font-mono">{{ summaryStats.statistics.KPercentage }}%</div>
+         </div>
+          <div class="stats-card">
+             <div class="text-gray-400 text-xs">{{ t('batting.bbPercentage') }}</div>
+             <div class="text-2xl font-bold text-gray-200 font-mono">{{ summaryStats.statistics.BBPercentage }}%</div>
+         </div>
+          <div class="stats-card">
+             <div class="text-gray-400 text-xs">{{ t('batting.sbPercentage') }}</div>
+             <div class="text-2xl font-bold text-gray-200 font-mono">{{ summaryStats.statistics.SBPercentage }}%</div>
+         </div>
+      </div>
+
+      <!-- 2. Visuals (BIP & Distribution) - 2/5 and 3/5 Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <!-- BIP Analysis (2/5) -->
+          <div class="card min-h-[400px] flex flex-col col-span-1 lg:col-span-2">
+             <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span class="text-green-400">🏏</span>
+                擊球分佈 (BIP)
+            </h3>
+            <div class="flex-1 flex items-center justify-center w-full">
+                <BipChart v-if="summaryStats.BIP" :data="summaryStats.BIP" />
+                <div v-else class="text-gray-500">暫無數據</div>
+            </div>
+          </div>
+
+          <!-- Hit Distribution (3/5) -->
+          <div class="card min-h-[400px] flex flex-col col-span-1 lg:col-span-3">
+             <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span class="text-orange-400">📍</span>
+                落點分佈
+            </h3>
+            <div class="flex-1 flex items-center justify-center w-full">
+                 <BattingField v-if="summaryStats.distribution" :data="summaryStats.distribution" />
+                 <div v-else class="text-gray-500">暫無數據</div>
+            </div>
+          </div>
+      </div>
+
+      <!-- 3. Totals Grid - Moved Down -->
+      <div class="card">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span class="text-blue-400">📊</span>
+            {{ t('batting.battingStats') }}
+        </h3>
+        <div class="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-2">
+            <div v-for="(value, key) in summaryStats.total" :key="key" class="p-3 bg-gray-900/40 rounded-lg text-center border border-white/5">
+                <div class="text-xs text-gray-500 uppercase mb-1">{{ t(`batting.${key}`) || key }}</div>
+                <div class="font-bold text-lg text-white font-mono">{{ value }}</div>
+            </div>
+        </div>
+      </div>
+
+      <!-- 4. Game Log Table -->
+      <div class="card relative">
+        <!-- Records Loading Overlay -->
+        <div v-if="isRecordsLoading" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
+             <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+
+
+         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <span class="text-yellow-500">📝</span>
+            {{ t('batting.battingRecords') }}
+        </h3>
+        
+        <!-- Enhanced Responsive Table -->
+        <div class="overflow-x-auto -mx-2 sm:mx-0 rounded-xl border border-gray-700/30">
+             <table class="min-w-full divide-y divide-gray-700/50 whitespace-nowrap">
+                <!-- Sticky Header -->
+                <thead class="bg-gray-800/80 backdrop-blur-sm sticky top-0 z-10">
+                    <tr>
+                         <!-- Sticky Date Column Header -->
+                         <th class="px-4 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-800 z-20 shadow-[2px_0_8px_rgba(0,0,0,0.3)]">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>{{ t('games.date') }}</span>
+                            </div>
+                         </th>
+                         <!-- Stats Headers with larger text -->
+                         <th v-for="header in ['PA', 'AB', 'RBI', 'R', 'single', 'double', 'triple', 'HR', 'BB', 'IBB', 'HBP', 'SO', 'SH', 'SF', 'SB', 'CS']" :key="header" 
+                            class="px-3 py-4 text-right text-sm font-bold text-gray-300 uppercase tracking-wider min-w-[3.5rem]"
+                         >
+                             {{ t(`batting.${header}`) || header }}
+                         </th>
+                         <!-- Sticky Detail Column Header -->
+                         <th class="px-4 py-4 text-center text-sm font-bold text-gray-300 uppercase tracking-wider sticky right-0 bg-gray-800 z-20 shadow-[-2px_0_8px_rgba(0,0,0,0.3)]">
+                            <svg class="w-5 h-5 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                         </th>
+                    </tr>
+                </thead>
+                
+                <!-- Table Body with Zebra Stripes -->
+                <tbody class="divide-y divide-gray-700/30">
+                    <tr v-for="(game, index) in gameRecords" :key="index" 
+                        class="group hover:bg-blue-900/10 transition-all duration-200"
+                        :class="index % 2 === 0 ? 'bg-gray-800/40' : 'bg-gray-800/20'"
+                    >
+                        <!-- Sticky Date Cell with larger font -->
+                        <td class="px-4 py-4 sticky left-0 z-10 shadow-[2px_0_6px_rgba(0,0,0,0.2)] transition-colors"
+                            :class="index % 2 === 0 ? 'bg-gray-800/40 group-hover:bg-blue-900/10' : 'bg-gray-800/20 group-hover:bg-blue-900/10'"
+                        >
+                            <div class="text-gray-200 font-semibold text-base whitespace-nowrap">{{ game.gameDate }}</div>
+                        </td>
+                        
+                        <!-- Stats Cells with larger font -->
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.PA }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.AB }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base font-bold text-blue-400">{{ game.RBI }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.R }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.single }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.double }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.triple }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base font-bold text-red-400">{{ game.HR }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.BB }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.IBB }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.HBP }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SO }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SH }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SF }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-purple-400">{{ game.SB }}</td>
+                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.CS }}</td>
+                        
+                        <!-- Sticky Detail Button -->
+                        <td class="px-4 py-4 text-center sticky right-0 z-10 shadow-[-2px_0_6px_rgba(0,0,0,0.2)] transition-colors"
+                            :class="index % 2 === 0 ? 'bg-gray-800/40 group-hover:bg-blue-900/10' : 'bg-gray-800/20 group-hover:bg-blue-900/10'"
+                        >
+                             <button @click="goToGame(game.gameId)" 
+                                class="p-2 rounded-lg bg-gray-700/80 hover:bg-blue-600 text-gray-300 hover:text-white transition-all transform hover:scale-110 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                             </button>
+                        </td>
+                    </tr>
+                </tbody>
+             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="gameRecords.length > 0 && pagination.totalPages > 1" class="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
+             <div class="text-sm text-gray-500">
+                第 {{ pagination.currentPage }} 頁，共 {{ pagination.totalPages }} 頁 ({{ pagination.totalItems }} 筆)
+            </div>
+            <div class="flex gap-2">
+                <button 
+                    @click="changePage(pagination.currentPage - 1)" 
+                    :disabled="pagination.currentPage === 1"
+                    class="px-3 py-1.5 rounded bg-gray-800 border border-gray-700 text-sm hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                    {{ t('common.prev') }}
+                </button>
+                <button 
+                    @click="changePage(pagination.currentPage + 1)" 
+                    :disabled="pagination.currentPage === pagination.totalPages"
+                    class="px-3 py-1.5 rounded bg-gray-800 border border-gray-700 text-sm hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                    {{ t('common.next') }}
+                </button>
+            </div>
+        </div>
+      </div>
+    
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!isLoading && !summaryStats" class="flex flex-col items-center justify-center py-20 bg-gray-800/30 rounded-2xl border border-white/5 border-dashed">
       <div class="text-6xl mb-4 opacity-50">📊</div>
       <p class="text-gray-400 text-lg font-medium">{{ t('common.noData') }}</p>
     </div>
-
-    <div v-else class="space-y-8">
-      <!-- Key Metrics -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- AVG -->
-        <div class="card relative overflow-hidden group hover:scale-105 transition-transform duration-300 border-t-4 border-t-blue-500">
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-colors"></div>
-          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">打擊率 (AVG)</h3>
-          <div class="text-5xl font-black text-white font-mono tracking-tight group-hover:text-blue-400 transition-colors">
-            {{ stats.avg }}
-          </div>
-        </div>
-
-        <!-- OPS -->
-        <div class="card relative overflow-hidden group hover:scale-105 transition-transform duration-300 border-t-4 border-t-purple-500">
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-colors"></div>
-          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">整體攻擊指數 (OPS)</h3>
-          <div class="text-5xl font-black text-white font-mono tracking-tight group-hover:text-purple-400 transition-colors">
-            {{ stats.ops }}
-          </div>
-        </div>
-
-        <!-- Hits -->
-        <div class="card relative overflow-hidden group hover:scale-105 transition-transform duration-300 border-t-4 border-t-green-500">
-           <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl group-hover:bg-green-500/20 transition-colors"></div>
-          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">總安打數 (Hits)</h3>
-          <div class="text-5xl font-black text-white font-mono tracking-tight group-hover:text-green-400 transition-colors">
-            {{ stats.total_hits }}
-          </div>
-        </div>
-
-        <!-- HR -->
-        <div class="card relative overflow-hidden group hover:scale-105 transition-transform duration-300 border-t-4 border-t-red-500">
-           <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-red-500/10 rounded-full blur-xl group-hover:bg-red-500/20 transition-colors"></div>
-          <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">全壘打 (HR)</h3>
-          <div class="text-5xl font-black text-white font-mono tracking-tight group-hover:text-red-400 transition-colors">
-            {{ stats.total_hr }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Detail Stats -->
-      <div class="card">
-        <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          詳細數據
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">打數 (AB)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.at_bats }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">打點 (RBI)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.rbi }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">得分 (R)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.runs }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">盜壘 (SB)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.sb }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">保送 (BB)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.bb }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">三振 (SO)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.so }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">長打率 (SLG)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.slg }}</div>
-          </div>
-          <div class="p-4 bg-gray-900/50 rounded-xl border border-white/5 text-center group hover:border-blue-500/30 transition-colors">
-            <div class="text-xs text-gray-500 mb-1 group-hover:text-blue-400 transition-colors">上壘率 (OBP)</div>
-            <div class="font-bold text-xl text-white font-mono">{{ stats.obp }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Batting Records List -->
-      <div v-if="records.length > 0" class="card">
-        <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-           <span class="text-yellow-500">📝</span>
-           {{ t('nav.battingRecords') }}
-        </h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-700/50">
-            <thead>
-              <tr>
-                <th scope="col" class="table-header">日期</th>
-                <th scope="col" class="table-header">比賽</th>
-                <th scope="col" class="table-header text-right">打數</th>
-                <th scope="col" class="table-header text-right">安打</th>
-                <th scope="col" class="table-header text-right">打點</th>
-                <th scope="col" class="table-header text-right">打擊率</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-700/50 bg-gray-800/40">
-              <tr v-for="record in records" :key="record.id" class="table-row group">
-                <td class="table-cell font-mono text-gray-400">{{ record.game_date }}</td>
-                <td class="table-cell font-medium text-white">{{ record.game_name }}</td>
-                <td class="table-cell text-right font-mono">{{ record.at_bats }}</td>
-                <td class="table-cell text-right font-mono text-blue-300 font-bold">{{ record.hits }}</td>
-                <td class="table-cell text-right font-mono">{{ record.rbi }}</td>
-                <td class="table-cell text-right">
-                  <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-bold font-mono">
-                    {{ record.avg }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
+
+<style scoped>
+.stats-card {
+    background-color: rgba(31, 41, 55, 0.5);
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 100px;
+}
+.stats-card:hover {
+    border-color: rgba(59, 130, 246, 0.2);
+}
+</style>

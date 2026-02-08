@@ -22,6 +22,18 @@ export const useGameListStore = defineStore('gameList', {
         },
         setIsSearchOpen(isOpen) {
             this.isSearchOpen = isOpen;
+        },
+        resetSearchForm() {
+            this.searchForm = {
+                Z00_season_id: '',
+                Z00_team_id: '',
+                Z00_team_id_enemy: '',
+                Z00_field_id: '',
+                gameResult: '',
+                gameDate: [null, null]
+            };
+            this.currentPage = 1;
+            this.isSearchOpen = false;
         }
     }
 });

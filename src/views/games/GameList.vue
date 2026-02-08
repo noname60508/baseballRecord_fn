@@ -1,9 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import gameService from '@/services/gameService';
-import masterDataService from '@/services/masterDataService';
 import DateRangePicker from '@/components/DateRangePicker.vue';
 import GameFormModal from '@/components/GameFormModal.vue';
 import { useMasterDataStore } from '@/stores/masterData';
@@ -157,13 +156,25 @@ const formatBattingSummary = (batterResult) => {
     return text;
 };
 
-const handleGameSaved = () => {
-    fetchGames(1); // Refresh and go to first page
+const handleGameSaved = (newGameId) => {
+    if (newGameId) {
+        router.push(`/games/${newGameId}`);
+    } else {
+        fetchGames(1);
+    }
 };
 
 onMounted(() => {
   fetchMasterData();
   fetchGames(currentPage.value);
+});
+
+// Clear search form when leaving GameList (except when going to game detail)
+onBeforeRouteLeave((to, from) => {
+    // Check if NOT going to a game detail page
+    if (!to.path.startsWith('/games/')) {
+        gameListStore.resetSearchForm();
+    }
 });
 </script>
 

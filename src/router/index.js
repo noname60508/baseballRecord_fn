@@ -19,15 +19,15 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/games/:id',
-        name: 'GameDetail',
-        component: () => import('@/views/games/GameDetail.vue'),
-        meta: { requiresAuth: true }
-    },
-    {
         path: '/games/new',
         name: 'GameNew',
         component: () => import('@/views/games/GameForm.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/games/:id',
+        name: 'GameDetail',
+        component: () => import('@/views/games/GameDetail.vue'),
         meta: { requiresAuth: true }
     },
     {
