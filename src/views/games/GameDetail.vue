@@ -761,7 +761,7 @@ onMounted(() => {
                                         <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400 text-nowrap">{{ t('games.pa') }}</th>
                                         <th class="px-2 md:px-6 py-4 md:py-5 text-gray-400 w-36 max-w-[10rem] text-nowrap">{{ t('batting.pitcher') }}</th>
                                         <th class="px-3 md:px-6 py-4 md:py-5 text-gray-400 w-auto min-w-[8rem] text-nowrap">{{ t('batting.matchupResult') }}</th>
-                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400 text-nowrap">{{ t('batting.rbi') }}</th>
+                                        <th class="px-3 md:px-6 py-4 md:py-5 text-center text-gray-400 text-nowrap">{{ t('batting.RBI') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5 bg-gray-800/40">

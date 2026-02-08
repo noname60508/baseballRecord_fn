@@ -89,7 +89,7 @@ const handleSearch = () => {
 };
 
 const clearSearch = () => {
-    searchStore.resetSearch();
+    searchStore.resetSearch(true);
     // Removed fetchGames(1) - only clear fields
 };
 
@@ -152,7 +152,7 @@ onMounted(() => {
 onBeforeRouteLeave((to, from) => {
     // Clear search when leaving, except when going to game detail
     if (!to.path.startsWith('/games/')) {
-        searchStore.resetSearch();
+        searchStore.resetSearch(false);
     }
 });
 </script>

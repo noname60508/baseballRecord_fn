@@ -43,7 +43,7 @@ export const useSearchStore = defineStore('search', {
         },
 
         // Reset search (called when leaving pages)
-        resetSearch() {
+        resetSearch(isSearchOpen) {
             this.searchForm = {
                 Z00_season_id: '',
                 Z00_team_id: '',
@@ -53,7 +53,7 @@ export const useSearchStore = defineStore('search', {
                 gameDate: [null, null]
             };
             this.currentPage = 1;
-            this.isSearchOpen = true;
+            this.isSearchOpen = isSearchOpen;
         },
 
         // Check if any search filter is active

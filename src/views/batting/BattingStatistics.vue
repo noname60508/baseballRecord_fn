@@ -90,7 +90,7 @@ const handleSearch = async () => {
 };
 
 const clearSearch = () => {
-    searchStore.resetSearch();
+    searchStore.resetSearch(true);
 };
 
 const changePage = (page) => {
@@ -111,7 +111,7 @@ onMounted(async () => {
 // Clear search when leaving, except when going to game detail
 onBeforeRouteLeave((to, from) => {
     if (!to.path.startsWith('/games/')) {
-        searchStore.resetSearch();
+        searchStore.resetSearch(false);
     }
 });
 </script>
@@ -152,26 +152,26 @@ onBeforeRouteLeave((to, from) => {
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="stats-card border-t-4 border-t-blue-500">
              <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.AVG') }}</div>
-             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.AVG }}</div>
-        </div>
-        <div class="stats-card border-t-4 border-t-purple-500">
-             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.OPS') }}</div>
-             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OPS }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.AVG ==1 ? '1.000' : summaryStats.statistics.AVG.toFixed(3).replace(/^0+/, '') }}</div>
         </div>
         <div class="stats-card border-t-4 border-t-green-500">
              <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.OBP') }}</div>
-             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OBP }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OBP == 1 ? '1.000' : summaryStats.statistics.OBP.toFixed(3).replace(/^0+/, '') }}</div>
         </div>
         <div class="stats-card border-t-4 border-t-red-500">
              <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.SLG') }}</div>
-             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.SLG }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.SLG == 1 ? '1.000' : summaryStats.statistics.SLG.toFixed(3).replace(/^0+/, '') }}</div>
+        </div>
+        <div class="stats-card border-t-4 border-t-purple-500">
+             <div class="text-gray-400 text-xs font-bold uppercase tracking-widest">{{ t('batting.OPS') }}</div>
+             <div class="text-3xl lg:text-4xl font-black text-white font-mono">{{ summaryStats.statistics.OPS.toFixed(3) }}</div>
         </div>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
          <div class="stats-card">
              <div class="text-gray-400 text-xs">{{ t('batting.rispAvg') }}</div>
-             <div class="text-2xl font-bold text-yellow-400 font-mono">{{ summaryStats.statistics.RISP_AVG }}</div>
+             <div class="text-2xl font-bold text-gray-200 font-mono">{{ summaryStats.statistics.RISP_AVG == 1 ? '1.000' : summaryStats.statistics.RISP_AVG.toFixed(3).replace(/^0+/, '') }}</div>
          </div>
           <div class="stats-card">
              <div class="text-gray-400 text-xs">{{ t('batting.kPercentage') }}</div>
@@ -248,67 +248,74 @@ onBeforeRouteLeave((to, from) => {
                 <thead class="bg-gray-800/80 backdrop-blur-sm sticky top-0 z-10">
                     <tr>
                          <!-- Sticky Date Column Header -->
-                         <th class="px-4 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-800 z-20 shadow-[2px_0_8px_rgba(0,0,0,0.3)]">
+                         <th class="px-4 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider sticky left-0 z-20 shadow-[2px_0_8px_rgba(0,0,0,0.3)]">
                             <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3 md:w-4 md:h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 <span>{{ t('games.date') }}</span>
                             </div>
                          </th>
+                         <th class="px-2 py-4 text-center text-sm font-bold text-gray-300 uppercase tracking-wider min-w-[3.5rem]">
+                            <div class="flex items-center gap-2">
+                                <span>{{ t('games.opponentTeam') }}</span>
+                            </div>
+                         </th>
                          <!-- Stats Headers with larger text -->
                          <th v-for="header in ['PA', 'AB', 'RBI', 'R', 'single', 'double', 'triple', 'HR', 'BB', 'IBB', 'HBP', 'SO', 'SH', 'SF', 'SB', 'CS']" :key="header" 
-                            class="px-3 py-4 text-right text-sm font-bold text-gray-300 uppercase tracking-wider min-w-[3.5rem]"
+                            class="px-2 py-4 text-center text-sm font-bold text-gray-300 uppercase tracking-wider min-w-[3.5rem]"
                          >
                              {{ t(`batting.${header}`) || header }}
                          </th>
                          <!-- Sticky Detail Column Header -->
-                         <th class="px-4 py-4 text-center text-sm font-bold text-gray-300 uppercase tracking-wider sticky right-0 bg-gray-800 z-20 shadow-[-2px_0_8px_rgba(0,0,0,0.3)]">
-                            <svg class="w-5 h-5 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <th class="px-4 py-4 text-center text-sm font-bold text-gray-300 uppercase tracking-wider sticky right-0 z-20 shadow-[-2px_0_8px_rgba(0,0,0,0.3)]">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                          </th>
                     </tr>
                 </thead>
                 
-                <!-- Table Body with Zebra Stripes -->
+                <!-- Table Body without Zebra Stripes -->
                 <tbody class="divide-y divide-gray-700/30">
                     <tr v-for="(game, index) in gameRecords" :key="index" 
-                        class="group hover:bg-blue-900/10 transition-all duration-200"
-                        :class="index % 2 === 0 ? 'bg-gray-800/40' : 'bg-gray-800/20'"
+                        class="group hover:bg-gray-800 transition-all duration-200"
                     >
                         <!-- Sticky Date Cell with larger font -->
-                        <td class="px-4 py-4 sticky left-0 z-10 shadow-[2px_0_6px_rgba(0,0,0,0.2)] transition-colors"
-                            :class="index % 2 === 0 ? 'bg-gray-800/40 group-hover:bg-blue-900/10' : 'bg-gray-800/20 group-hover:bg-blue-900/10'"
+                        <td class="px-4 py-4 sticky left-0 z-20 shadow-[2px_0_6px_rgba(0,0,0,0.2)] group-hover:bg-gray-800 transition-colors"
                         >
-                            <div class="text-gray-200 font-semibold text-base whitespace-nowrap">{{ game.gameDate }}</div>
+                            <div class="text-gray-200 font-semibold text-sm md:text-base whitespace-nowrap">{{ game.gameDate }}</div>
+                        </td>
+
+                        <!-- Opponent Cell -->
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">
+                            {{ game.teamNameEnemy }}
                         </td>
                         
                         <!-- Stats Cells with larger font -->
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.PA }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.AB }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base font-bold text-blue-400">{{ game.RBI }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.R }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.single }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.double }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-green-400">{{ game.triple }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base font-bold text-red-400">{{ game.HR }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.BB }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.IBB }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-yellow-400">{{ game.HBP }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SO }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SH }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.SF }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-purple-400">{{ game.SB }}</td>
-                        <td class="px-3 py-4 text-right font-mono text-base text-gray-300">{{ game.CS }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.PA }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.AB }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.RBI }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.R }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.single }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.double }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.triple }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.HR }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.BB }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.IBB }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.HBP }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.SO }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.SH }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.SF }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.SB }}</td>
+                        <td class="px-2 py-4 text-center font-mono text-base text-gray-300">{{ game.CS }}</td>
                         
                         <!-- Sticky Detail Button -->
-                        <td class="px-4 py-4 text-center sticky right-0 z-10 shadow-[-2px_0_6px_rgba(0,0,0,0.2)] transition-colors"
-                            :class="index % 2 === 0 ? 'bg-gray-800/40 group-hover:bg-blue-900/10' : 'bg-gray-800/20 group-hover:bg-blue-900/10'"
+                        <td class="px-4 py-4 text-center sticky right-0 z-20 shadow-[-2px_0_6px_rgba(0,0,0,0.2)] group-hover:bg-gray-800 transition-colors"
                         >
                              <button @click="goToGame(game.gameId)" 
                                 class="p-2 rounded-lg bg-gray-700/80 hover:bg-blue-600 text-gray-300 hover:text-white transition-all transform hover:scale-110 shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
                              </button>
