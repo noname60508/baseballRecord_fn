@@ -2,16 +2,22 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import battingService from '@/services/battingService';
-import masterDataService from '@/services/masterDataService';
 import SearchBar from '@/components/SearchBar.vue';
 import BipChart from '@/components/charts/BipChart.vue';
 import BattingField from '@/components/charts/BattingField.vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
-import { useGameListStore } from '@/stores/gameList';
+import { useMasterDataStore } from '@/stores/masterData';
+import { useSearchStore } from '@/stores/searchStore';
 import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 const router = useRouter();
+
+// Initialize stores
+const masterDataStore = useMasterDataStore();
+const searchStore = useSearchStore();
+const { seasons, fields, myTeams, opponentTeams } = storeToRefs(masterDataStore);
+const { searchForm, currentPage, isSearchOpen } = storeToRefs(searchStore);
 
 // Data State
 const summaryStats = ref(null);
@@ -24,31 +30,10 @@ const pagination = ref({
 });
 const isLoading = ref(true);
 const isRecordsLoading = ref(false);
-const gameListStore = useGameListStore();
-const { searchForm, currentPage, isSearchOpen } = storeToRefs(gameListStore);
 
-// Master Data
-const seasons = ref([]);
-const fields = ref([]);
-const myTeams = ref([]);
-const opponentTeams = ref([]);
-
-// Fetch Master Data
+// Fetch Master Data from store
 const fetchMasterData = async () => {
-    try {
-        const [seasonsRes, fieldsRes, myTeamsRes, opponentTeamsRes] = await Promise.all([
-            masterDataService.seasons.getAll(),
-            masterDataService.fields.getAll(),
-            masterDataService.teams.getAll({ teamtype: 1 }),
-            masterDataService.teams.getAll({ teamtype: 2 })
-        ]);
-        seasons.value = seasonsRes.data.result;
-        fields.value = fieldsRes.data.result;
-        myTeams.value = myTeamsRes.data.result;
-        opponentTeams.value = opponentTeamsRes.data.result;
-    } catch (error) {
-        console.error('Failed to load master data:', error);
-    }
+    await masterDataStore.fetchAll();
 };
 
 const getQueryParams = () => {
@@ -97,7 +82,6 @@ const handleSearch = async () => {
     isLoading.value = true;
     try {
         await Promise.all([fetchSummary(), fetchRecords(1)]);
-        isSearchOpen.value = false;
     } catch (error) {
         console.error('Search failed:', error);
     } finally {
@@ -106,14 +90,7 @@ const handleSearch = async () => {
 };
 
 const clearSearch = () => {
-    searchForm.value = {
-        Z00_season_id: '',
-        Z00_team_id: '',
-        Z00_team_id_enemy: '',
-        Z00_field_id: '',
-        gameResult: '',
-        gameDate: [null, null]
-    };
+    searchStore.resetSearch();
 };
 
 const changePage = (page) => {
@@ -131,11 +108,10 @@ onMounted(async () => {
     handleSearch();
 });
 
-// Clear search form when leaving GameList (except when going to game detail)
+// Clear search when leaving, except when going to game detail
 onBeforeRouteLeave((to, from) => {
-    // Check if NOT going to a game detail page
     if (!to.path.startsWith('/games/')) {
-        gameListStore.resetSearchForm();
+        searchStore.resetSearch();
     }
 });
 </script>

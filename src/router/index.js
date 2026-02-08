@@ -39,7 +39,7 @@ const routes = [
     {
         path: '/batting/records',
         name: 'BattingRecords',
-        component: () => import('@/views/batting/BattingRecords.vue'),
+        component: () => import('@/views/batting/BattingStatistics.vue'),
         meta: { requiresAuth: true }
     },
     {
