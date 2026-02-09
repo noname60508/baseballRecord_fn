@@ -14,7 +14,7 @@ import QuickAddModal from '@/components/QuickAddModal.vue';
 
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const game = ref(null);
 const isLoading = ref(true);
@@ -775,7 +775,7 @@ onMounted(() => {
                                         </td>
                                         <td class="px-3 md:px-6 py-4">
                                             <span class="text-sm md:text-base font-black tracking-wide text-gray-200">
-                                                {{ pa.displayName }}
+                                                {{ locale === 'zh-TW' ? pa.displayName : pa.jaDisplayName }}
                                             </span>
                                         </td>
                                         <td class="px-3 md:px-6 py-4 text-center">

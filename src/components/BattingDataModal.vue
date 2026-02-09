@@ -9,7 +9,7 @@ import battingResultService from '@/services/battingResultService';
 
 import { useToast } from '@/composables/useToast';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { error: toastError } = useToast();
 
 const props = defineProps({
@@ -165,7 +165,13 @@ const getAvailableBallTypes = (matchupResultId) => {
 };
 
 const hasAvailableBallTypes = (matchupResultId) => {
-    return getAvailableBallTypes(matchupResultId).length > 0;
+    return !!getAvailableBallTypes(matchupResultId).length;
+};
+
+// Helper function to get localized name
+const getLocalizedName = (item) => {
+    if (!item) return '';
+    return locale.value === 'ja' && item.jaName ? item.jaName : item.name;
 };
 
 // ========== Save & Close Handlers ==========
@@ -351,7 +357,7 @@ const handleClose = () => {
                                                     >
                                                         <option :value="null">---</option>
                                                         <option v-for="mr in matchupResults" :key="mr.Z00_matchupResultList_id" :value="Number(mr.Z00_matchupResultList_id)">
-                                                            {{ mr.name }}
+                                                            {{ getLocalizedName(mr) }}
                                                         </option>
                                                     </select>
                                                 </td>
@@ -365,7 +371,7 @@ const handleClose = () => {
                                                     >
                                                         <option :value="null">{{ t('batting.selectLocation') }}</option>
                                                         <option v-for="loc in getAvailableLocations(result.Z00_matchupResultList_id)" :key="loc.Z00_positionAndLocation_id" :value="Number(loc.Z00_positionAndLocation_id)">
-                                                            {{ loc.name }}
+                                                            {{ getLocalizedName(loc) }}
                                                         </option>
                                                     </select>
                                                     <span v-else class="text-gray-600 text-sm">-</span>
@@ -380,7 +386,7 @@ const handleClose = () => {
                                                     >
                                                         <option :value="null">{{ t('batting.selectBallType') }}</option>
                                                         <option v-for="type in getAvailableBallTypes(result.Z00_matchupResultList_id)" :key="type.Z00_ballInPlayType_id" :value="Number(type.Z00_ballInPlayType_id)">
-                                                            {{ type.name }}
+                                                            {{ getLocalizedName(type) }}
                                                         </option>
                                                     </select>
                                                     <span v-else class="text-gray-600 text-sm">-</span>
