@@ -94,7 +94,7 @@
         "homeAway": "先攻/後攻",
         "firstAttack": "先攻",
         "secondAttack": "後攻",
-        "memo": "備考",
+        "memo": "メモ",
         "opponent": "対戦相手",
         "score": "スコア",
         "quickAdd": "クイック追加",
@@ -117,7 +117,10 @@
         "teamIdRequired": "チームを選択してください",
         "addMyTeam": "自チームを追加",
         "addOpponentTeam": "相手チームを追加",
-        "memoPlaceholder": "備考..."
+        "memoPlaceholder": "メモ...",
+        "selectSeason": "選択してください",
+        "selectTeam": "選択してください",
+        "selectField": "選択してください"
     },
     "batting": {
         "title": "打撃成績",
@@ -167,7 +170,10 @@
         "sum": "数",
         "hit": "安打数",
         "locationAVG": "打率",
-        "percentage": "割合"
+        "percentage": "割合",
+        "selectLocation": "落点を選択してください",
+        "selectBallType": "打球タイプを選択してください",
+        "emptyState": "「打席を追加」をクリックして打席を追加してください"
     },
     "masterData": {
         "title": "マスターデータ管理",
@@ -182,7 +188,13 @@
         "search": "検索",
         "addTeam": "チームを追加",
         "addSeason": "シーズンを追加",
-        "addField": "球場を追加"
+        "addField": "球場を追加",
+        "deleteTeam": "チームを削除",
+        "deleteSeason": "シーズンを削除",
+        "deleteField": "球場を削除",
+        "confirmDeleteTeam": "本当に削除しますか？",
+        "confirmDeleteSeason": "本当に削除しますか？",
+        "confirmDeleteField": "本当に削除しますか？"
     },
     "GorF": {
         "title": "ゴロ/フライ比率",

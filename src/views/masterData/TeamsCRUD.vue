@@ -96,7 +96,7 @@ const handleUpdate = async () => {
 };
 
 const handleDelete = async (id) => {
-  const confirmed = await showConfirm('確定要刪除此球隊嗎？', '刪除球隊');
+  const confirmed = await showConfirm(t('masterData.confirmDeleteTeam'), t('masterData.deleteTeam'));
   if (!confirmed) return;
   
   try {

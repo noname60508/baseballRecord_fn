@@ -163,7 +163,7 @@ onMounted(async () => {
         <!-- Section 1: Basic Info -->
         <div class="space-y-6">
           <h2 class="text-lg font-semibold text-blue-400 uppercase tracking-wider border-b border-white/10 pb-2 mb-4">
-            基本資訊
+            {{ t('games.basicInfo') }}
           </h2>
           
           <!-- 1. Season & Field -->
@@ -175,7 +175,7 @@ onMounted(async () => {
               <div class="flex gap-2">
                 <div class="relative w-full">
                   <select v-model="formData.season_id" class="input-field appearance-none cursor-pointer" required>
-                    <option value="" disabled class="bg-gray-800">請選擇賽季</option>
+                    <option value="" disabled class="bg-gray-800">{{ t('games.selectSeason') }}</option>
                     <option v-for="season in seasons" :key="season.id" :value="season.id" class="bg-gray-800">
                       {{ season.name }}
                     </option>
@@ -204,7 +204,7 @@ onMounted(async () => {
               <div class="flex gap-2">
                 <div class="relative w-full">
                   <select v-model="formData.field_id" class="input-field appearance-none cursor-pointer">
-                    <option value="" class="bg-gray-800">請選擇場地</option>
+                    <option value="" class="bg-gray-800">{{ t('games.selectField') }}</option>
                     <option v-for="field in fields" :key="field.id" :value="field.id" class="bg-gray-800">
                       {{ field.name }}
                     </option>
@@ -236,7 +236,7 @@ onMounted(async () => {
               <div class="flex gap-2">
                   <div class="relative w-full">
                       <select v-model="formData.team_id" class="input-field appearance-none cursor-pointer" required>
-                        <option value="" disabled class="bg-gray-800">請選擇我方球隊</option>
+                        <option value="" disabled class="bg-gray-800">{{ t('games.selectMyTeam') }}</option>
                         <option v-for="team in myTeams" :key="team.id" :value="team.id" class="bg-gray-800">
                           {{ team.name }}
                         </option>

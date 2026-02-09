@@ -192,7 +192,7 @@ const handleClose = () => {
 <template>
     <Teleport to="body">
         <Transition name="modal">
-            <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center md:p-4 p-0">
+            <div v-if="isOpen" class="fixed inset-0 z-[50] flex items-center justify-center md:p-4 p-0">
                 <!-- Backdrop -->
                 <div class="absolute inset-0 bg-black/80" aria-hidden="true"></div>
 
@@ -213,7 +213,7 @@ const handleClose = () => {
                         <form @submit.prevent="handleSubmit" class="space-y-6">
                             <!-- Basic Info Section -->
                             <div class="space-y-4">
-                                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">基本資訊</h3>
+                                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">{{ t('games.basicInfo') }}</h3>
                                 
                                 <!-- Season & Field -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -223,7 +223,7 @@ const handleClose = () => {
                                         </label>
                                         <div class="flex gap-2">
                                             <select v-model="formData.season_id" class="input-field flex-1" required>
-                                                <option value="" disabled>請選擇賽季</option>
+                                                <option value="" disabled>{{ t('games.selectSeason') }}</option>
                                                 <option v-for="season in seasons" :key="season.id" :value="season.id">
                                                     {{ season.name }}
                                                 </option>
@@ -240,7 +240,7 @@ const handleClose = () => {
                                         <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.field') }}</label>
                                         <div class="flex gap-2">
                                             <select v-model="formData.field_id" class="input-field flex-1">
-                                                <option value="">請選擇場地</option>
+                                                <option value="">{{ t('games.selectField') }}</option>
                                                 <option v-for="field in fields" :key="field.id" :value="field.id">
                                                     {{ field.name }}
                                                 </option>
@@ -262,7 +262,7 @@ const handleClose = () => {
                                         </label>
                                         <div class="flex gap-2">
                                             <select v-model="formData.team_id" class="input-field flex-1" required>
-                                                <option value="" disabled>請選擇我方球隊</option>
+                                                <option value="" disabled>{{ t('games.selectTeam') }}</option>
                                                 <option v-for="team in myTeams" :key="team.id" :value="team.id">
                                                     {{ team.name }}
                                                 </option>
@@ -279,7 +279,7 @@ const handleClose = () => {
                                         <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.opponentTeam') }}</label>
                                         <div class="flex gap-2">
                                             <select v-model="formData.opponent_team_id" class="input-field flex-1">
-                                                <option value="">請選擇對方球隊</option>
+                                                <option value="">{{ t('games.selectTeam') }}</option>
                                                 <option v-for="team in opponentTeams" :key="team.id" :value="team.id">
                                                     {{ team.name }}
                                                 </option>
@@ -342,11 +342,11 @@ const handleClose = () => {
 
                                     <div class="grid grid-cols-2 gap-4">
                                         <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-400 ml-1">我方分數</label>
+                                            <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.myScore') }}</label>
                                             <input v-model.number="formData.score" type="number" min="0" class="input-field" placeholder="0">
                                         </div>
                                         <div class="space-y-2">
-                                            <label class="block text-sm font-medium text-gray-400 ml-1">對方分數</label>
+                                            <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.opponentScore') }}</label>
                                             <input v-model.number="formData.enemyScore" type="number" min="0" class="input-field" placeholder="0">
                                         </div>
                                     </div>

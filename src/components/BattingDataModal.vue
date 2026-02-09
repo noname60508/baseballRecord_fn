@@ -267,7 +267,7 @@ const handleClose = () => {
                         <!-- Batting Statistics (Responsive Flex Layout) -->
                         <div class="flex flex-wrap items-center gap-6 px-4 py-4 bg-gray-800/40 rounded-xl border border-white/5">
                             <div class="flex flex-col items-start gap-1">
-                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.r') }}</label>
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.R') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.R"
@@ -276,7 +276,7 @@ const handleClose = () => {
                                 >
                             </div>
                             <div class="flex flex-col items-start gap-1">
-                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.sb') }}</label>
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.SB') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.SB"
@@ -285,7 +285,7 @@ const handleClose = () => {
                                 >
                             </div>
                             <div class="flex flex-col items-start gap-1">
-                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.cs') }}</label>
+                                <label class="text-xs font-bold text-gray-400 pl-1">{{ t('batting.CS') }}</label>
                                 <input 
                                     type="number" 
                                     v-model.number="localBattingStats.CS"
@@ -320,7 +320,7 @@ const handleClose = () => {
                                                 <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[150px] text-nowrap">{{ t('batting.matchupResult') }}</th>
                                                 <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[130px] text-nowrap">{{ t('batting.location') }}</th>
                                                 <th class="px-2 md:px-4 py-4 text-gray-400 min-w-[130px] text-nowrap">{{ t('batting.ballType') }}</th>
-                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400 w-20 text-nowrap">{{ t('batting.rbi') }}</th>
+                                                <th class="px-2 md:px-4 py-4 text-center text-gray-400 w-20 text-nowrap">{{ t('batting.RBI') }}</th>
                                                 <th class="px-2 md:px-4 py-4 text-center text-gray-400 min-w-[80px] text-nowrap">{{ t('batting.risp') }}</th>
                                                 <th class="px-2 md:px-4 py-4 text-center w-16 text-nowrap"></th>
                                             </tr>
@@ -363,7 +363,7 @@ const handleClose = () => {
                                                         v-model="result.Z00_location_id"
                                                         class="input-field !py-2 !px-3 !text-sm w-full"
                                                     >
-                                                        <option :value="null">選擇落點</option>
+                                                        <option :value="null">{{ t('batting.selectLocation') }}</option>
                                                         <option v-for="loc in getAvailableLocations(result.Z00_matchupResultList_id)" :key="loc.Z00_positionAndLocation_id" :value="Number(loc.Z00_positionAndLocation_id)">
                                                             {{ loc.name }}
                                                         </option>
@@ -378,7 +378,7 @@ const handleClose = () => {
                                                         v-model="result.Z00_BallInPlayType_id"
                                                         class="input-field !py-2 !px-3 !text-sm w-full"
                                                     >
-                                                        <option :value="null">選擇型態</option>
+                                                        <option :value="null">{{ t('batting.selectBallType') }}</option>
                                                         <option v-for="type in getAvailableBallTypes(result.Z00_matchupResultList_id)" :key="type.Z00_ballInPlayType_id" :value="Number(type.Z00_ballInPlayType_id)">
                                                             {{ type.name }}
                                                         </option>
@@ -429,7 +429,7 @@ const handleClose = () => {
                                 
                                 <!-- Empty State -->
                                 <div v-if="localBattingResults.length === 0" class="p-12 text-center text-gray-600 italic">
-                                    點擊「新增打席」按鈕來新增打席記錄
+                                    {{ t('batting.emptyState') }}
                                 </div>
                             </div>
                         </div>

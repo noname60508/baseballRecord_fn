@@ -76,7 +76,7 @@ const handleUpdate = async () => {
 };
 
 const handleDelete = async (id) => {
-  const confirmed = await showConfirm('確定要刪除此賽季嗎？', '刪除賽季');
+  const confirmed = await showConfirm(t('masterData.confirmDeleteSeason'), t('masterData.deleteSeason'));
   if (!confirmed) return;
   
   try {

@@ -196,11 +196,7 @@ onBeforeRouteLeave((to, from) => {
 
     <!-- Empty State -->
     <div v-else-if="games.length === 0" class="flex flex-col items-center justify-center py-20 bg-gray-800/30 rounded-2xl border border-white/5 border-dashed">
-      <div class="text-6xl mb-4 opacity-50">🏟️</div>
       <p class="text-gray-400 text-lg font-medium">{{ t('common.noData') }}</p>
-      <router-link to="/games/new" class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium hover:underline">
-        {{ t('games.addGame') }}
-      </router-link>
     </div>
 
     <!-- Game List -->

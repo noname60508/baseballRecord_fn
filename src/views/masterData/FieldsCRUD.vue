@@ -76,7 +76,7 @@ const handleUpdate = async () => {
 };
 
 const handleDelete = async (id) => {
-  const confirmed = await showConfirm('確定要刪除此場地嗎？', '刪除場地');
+  const confirmed = await showConfirm(t('masterData.confirmDeleteField'), t('masterData.deleteField'));
   if (!confirmed) return;
 
   try {

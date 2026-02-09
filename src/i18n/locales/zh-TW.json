@@ -28,7 +28,7 @@
         "search": "搜尋",
         "searchButton": "查詢",
         "resetSearch": "清除條件",
-        "confirm": "確認",
+        "confirm": "確定",
         "back": "返回",
         "loading": "載入中...",
         "prev": "上一頁",
@@ -82,6 +82,7 @@
     },
     "games": {
         "title": "比賽紀錄",
+        "detail": "比賽詳細",
         "addGame": "新增比賽",
         "deleteGame": "刪除",
         "team": "球隊",
@@ -117,7 +118,12 @@
         "teamIdRequired": "請選擇我方球隊",
         "addMyTeam": "新增我方球隊",
         "addOpponentTeam": "新增對方球隊",
-        "memoPlaceholder": "備註..."
+        "memoPlaceholder": "備註...",
+        "selectSeason": "請選擇賽季",
+        "selectTeam": "請選擇球隊",
+        "selectField": "請選擇場地",
+        "selectMyTeam": "請選擇我方球隊",
+        "selectOpponentTeam": "請選擇對方球隊"
     },
     "batting": {
         "title": "打擊成績",
@@ -167,7 +173,10 @@
         "sum": "數量",
         "hit": "安打數",
         "locationAVG": "打擊率",
-        "percentage": "比例"
+        "percentage": "比例",
+        "selectLocation": "選擇落點",
+        "selectBallType": "選擇擊球型態",
+        "emptyState": "點擊「新增打席」按鈕來新增打席記錄"
     },
     "masterData": {
         "title": "主資料管理",
@@ -182,7 +191,13 @@
         "search": "搜尋",
         "addTeam": "新增球隊",
         "addSeason": "新增賽季",
-        "addField": "新增場地"
+        "addField": "新增場地",
+        "deleteTeam": "刪除球隊",
+        "deleteSeason": "刪除賽季",
+        "deleteField": "刪除場地",
+        "confirmDeleteTeam": "確定要刪除此球隊嗎？",
+        "confirmDeleteSeason": "確定要刪除此賽季嗎？",
+        "confirmDeleteField": "確定要刪除此場地嗎？"
     },
     "GorF": {
         "title": "滾飛比",

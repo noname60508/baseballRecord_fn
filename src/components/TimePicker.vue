@@ -129,7 +129,7 @@ const handleConfirm = () => {
         @click="handleConfirm"
         class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-blue-900/20"
     >
-        確定
+        {{ t('common.confirm') }}
     </button>
   </div>
 </template>

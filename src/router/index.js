@@ -24,22 +24,16 @@ const routes = [
         component: () => import('@/views/games/GameList.vue'),
         meta: { requiresAuth: true }
     },
-    {
-        path: '/games/new',
-        name: 'GameNew',
-        component: () => import('@/views/games/GameForm.vue'),
-        meta: { requiresAuth: true }
-    },
+    // {
+    //     path: '/games/new',
+    //     name: 'GameNew',
+    //     component: () => import('@/views/games/GameForm.vue'),
+    //     meta: { requiresAuth: false }
+    // },
     {
         path: '/games/:id',
         name: 'GameDetail',
         component: () => import('@/views/games/GameDetail.vue'),
-        meta: { requiresAuth: true }
-    },
-    {
-        path: '/games/:id/edit',
-        name: 'GameEdit',
-        component: () => import('@/views/games/GameForm.vue'),
         meta: { requiresAuth: true }
     },
     {

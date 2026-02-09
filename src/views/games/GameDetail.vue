@@ -381,7 +381,7 @@ onMounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <h1 class="text-3xl font-bold text-white tracking-tight">比賽詳情</h1>
+                <h1 class="text-3xl font-bold text-white tracking-tight">{{ t('games.detail') }}</h1>
             </div>
         </div>
 
@@ -391,7 +391,7 @@ onMounted(() => {
         </div>
 
         <div v-else-if="!game" class="card text-center py-20 text-gray-400">
-            找不到該比賽紀錄
+            {{ t('common.noData') }}
         </div>
 
         <div v-else class="space-y-8 pb-16">
@@ -411,7 +411,7 @@ onMounted(() => {
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                                編輯
+                                {{ t('common.edit') }}
                             </button>
                             <button 
                                 @click="openDeleteModal" 
@@ -525,7 +525,7 @@ onMounted(() => {
                     <!-- Memo -->
                     <div class="mt-6 py-2">
                         <span class="text-gray-500 font-bold text-base uppercase tracking-wider block mb-2">{{ t('games.memo') }}</span>
-                        <p class="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">{{ gameData.memo || t('common.noData') }}</p>
+                        <p class="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">{{ gameData.memo || ' ' }}</p>
                     </div>
                 </div>
 
@@ -544,7 +544,6 @@ onMounted(() => {
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-400 ml-1">{{ t('games.field') }}</label>
                             <select v-model="editedGameData.Z00_field_id" class="input-field">
-                                <option :value="null">---</option>
                                 <option v-for="f in fields" :key="f.id" :value="f.id">{{ f.name }}</option>
                             </select>
                         </div>
