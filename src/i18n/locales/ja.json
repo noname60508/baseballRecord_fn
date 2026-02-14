@@ -40,7 +40,8 @@
         "deleteConfirm": "本当に削除しますか？",
         "required": "必須",
         "enterNamePlaceholder": "名前を入力してください...",
-        "clearSelection": "選択をクリア"
+        "clearSelection": "選択をクリア",
+        "success": "成功"
     },
     "nav": {
         "games": "試合記録",

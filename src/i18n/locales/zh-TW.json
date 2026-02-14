@@ -40,7 +40,8 @@
         "deleteConfirm": "確定要刪除嗎？",
         "required": "必填",
         "enterNamePlaceholder": "請輸入名稱...",
-        "clearSelection": "清除選擇"
+        "clearSelection": "清除選擇",
+        "success": "成功"
     },
     "nav": {
         "games": "比賽紀錄",
