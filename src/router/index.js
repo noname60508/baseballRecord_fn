@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 const routes = [
@@ -24,12 +24,6 @@ const routes = [
         component: () => import('@/views/games/GameList.vue'),
         meta: { requiresAuth: true }
     },
-    // {
-    //     path: '/games/new',
-    //     name: 'GameNew',
-    //     component: () => import('@/views/games/GameForm.vue'),
-    //     meta: { requiresAuth: false }
-    // },
     {
         path: '/games/:id',
         name: 'GameDetail',
@@ -37,7 +31,7 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/batting/statistics',
+        path: '/batting',
         name: 'BattingStatistics',
         component: () => import('@/views/batting/BattingStatistics.vue'),
         meta: { requiresAuth: true }
@@ -57,7 +51,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes
 });
 
