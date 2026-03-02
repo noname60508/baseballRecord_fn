@@ -3,7 +3,7 @@ import api from './api';
 export default {
     // 登入
     login(credentials) {
-        return api.get('/login', { params: credentials });
+        return api.post('/login', credentials);
     },
 
     // 登出

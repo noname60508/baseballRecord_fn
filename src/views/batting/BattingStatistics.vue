@@ -295,7 +295,7 @@ onBeforeRouteLeave((to, from) => {
 
       <!-- 4. Game Log Table -->
       <div v-show="activeTab === 'records'" class="relative">
-         <h3 class="text-xl font-bold text-white mb-6 flex items-center justify-center lg:justify-start gap-2">
+         <h3 class="text-xl font-bold text-white mb-6 flex items-left justify-left lg:justify-start gap-2">
             <span class="text-yellow-500">📝</span>
             {{ t('batting.battingRecords') }}
         </h3>

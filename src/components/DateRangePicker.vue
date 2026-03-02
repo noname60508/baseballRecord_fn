@@ -19,6 +19,10 @@ const today = new Date();
 const currentYear = ref(today.getFullYear());
 const currentMonth = ref(today.getMonth()); // 0-11
 
+// View mode: 'days' | 'months' | 'years'
+const viewMode = ref('days');
+const yearRangeStart = ref(Math.floor(today.getFullYear() / 12) * 12);
+
 const startDate = ref(props.modelValue[0] ? new Date(props.modelValue[0]) : null);
 const endDate = ref(props.modelValue[1] ? new Date(props.modelValue[1]) : null);
 const hoverDate = ref(null);
@@ -92,6 +96,17 @@ const isInRange = (date) => {
     return false;
 };
 
+const isToday = (date) => {
+    if (!date) return false;
+    const formatDate = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+    return formatDate(date) === formatDate(today);
+};
+
 const handleMouseEnter = (date) => {
     if (startDate.value && !endDate.value) {
         hoverDate.value = date;
@@ -150,6 +165,21 @@ const nextMonth = () => {
         currentMonth.value++;
     }
 };
+
+const yearList = computed(() => Array.from({ length: 12 }, (_, i) => yearRangeStart.value + i));
+const monthList = computed(() => [0,1,2,3,4,5,6,7,8,9,10,11]);
+
+const selectMonth = (month) => { currentMonth.value = month; viewMode.value = 'days'; };
+const selectYear = (year) => { currentYear.value = year; yearRangeStart.value = Math.floor(year / 12) * 12; viewMode.value = 'months'; };
+const toggleView = () => {
+    if (viewMode.value === 'days') viewMode.value = 'years';
+    else if (viewMode.value === 'years') viewMode.value = 'months';
+    else viewMode.value = 'days';
+};
+const prevYear = () => { currentYear.value--; };
+const nextYear = () => { currentYear.value++; };
+const prevYearRange = () => { yearRangeStart.value -= 12; };
+const nextYearRange = () => { yearRangeStart.value += 12; };
 </script>
 
 <template>
@@ -182,38 +212,101 @@ const nextMonth = () => {
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-4">
-        <button @click="prevMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
+        <button type="button"
+            @click="viewMode === 'days' ? prevMonth() : viewMode === 'months' ? prevYear() : prevYearRange()"
+            class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
-        <div class="font-bold text-white">{{ currentYear }}{{ t('basic.year') }} {{ currentMonth + 1 }}{{ t('basic.month') }}</div>
-        <button @click="nextMonth" class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
+        <button type="button"
+            @click="toggleView"
+            class="font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-700">
+            <template v-if="viewMode === 'days'">
+                {{ currentYear }}{{ t('basic.year') }} {{ currentMonth + 1 }}{{ t('basic.month') }}
+            </template>
+            <template v-else-if="viewMode === 'months'">
+                {{ currentYear }}{{ t('basic.year') }}
+            </template>
+            <template v-else>
+                {{ yearRangeStart }} - {{ yearRangeStart + 11 }}
+            </template>
+            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+        <button type="button"
+            @click="viewMode === 'days' ? nextMonth() : viewMode === 'months' ? nextYear() : nextYearRange()"
+            class="p-1 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
     </div>
 
-    <!-- Interface -->
-    <div class="grid grid-cols-7 gap-1 mb-2">
-        <div v-for="dayKey in daysOfWeek" :key="dayKey" class="text-center text-xs font-medium text-gray-500 py-1">
-            {{ t(`week.${dayKey}`) }}
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-7 gap-1" @mouseleave="handleMouseLeave">
-        <div 
-            v-for="(dayObj, index) in currentMonthDays" 
-            :key="index" 
-            class="aspect-square relative flex items-center justify-center text-sm cursor-pointer rounded-lg transition-all"
-            :class="[
-                !dayObj.date ? 'pointer-events-none' : 'hover:bg-gray-700 text-gray-300',
-                isSelected(dayObj.date) ? '!bg-blue-600 !text-white !hover:bg-blue-500 font-bold shadow-md transform scale-105 z-10' : '',
-                isInRange(dayObj.date) ? 'bg-blue-500/20 text-blue-200' : ''
-            ]"
-            @click="handleDateClick(dayObj)"
-            @mouseenter="dayObj.date && handleMouseEnter(dayObj.date)"
+    <!-- Year Picker View -->
+    <div v-if="viewMode === 'years'" class="grid grid-cols-4 gap-1">
+        <button
+            v-for="year in yearList" :key="year"
+            type="button"
+            @click="selectYear(year)"
+            class="py-2 text-sm rounded-lg transition-all font-medium"
+            :class="year === currentYear
+                ? 'bg-blue-600 text-white font-bold'
+                : year === today.getFullYear()
+                    ? 'bg-orange-500/10 text-orange-300 font-bold ring-1 ring-orange-400/50'
+                    : 'text-gray-300 hover:bg-gray-700'"
         >
-            {{ dayObj.day }}
-        </div>
+            {{ year }}
+        </button>
     </div>
+
+    <!-- Month Picker View -->
+    <div v-else-if="viewMode === 'months'" class="grid grid-cols-4 gap-1">
+        <button
+            v-for="m in monthList" :key="m"
+            type="button"
+            @click="selectMonth(m)"
+            class="py-2 text-sm rounded-lg transition-all font-medium"
+            :class="m === currentMonth
+                ? 'bg-blue-600 text-white font-bold'
+                : (m === today.getMonth() && currentYear === today.getFullYear())
+                    ? 'bg-orange-500/10 text-orange-300 font-bold ring-1 ring-orange-400/50'
+                    : 'text-gray-300 hover:bg-gray-700'"
+        >
+            {{ m + 1 }}{{ t('basic.month') }}
+        </button>
+    </div>
+
+    <!-- Days View -->
+    <template v-else>
+        <!-- Weekdays -->
+        <div class="grid grid-cols-7 gap-1 mb-2">
+            <div v-for="dayKey in daysOfWeek" :key="dayKey" class="text-center text-xs font-medium text-gray-500 py-1">
+                {{ t(`week.${dayKey}`) }}
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-7 gap-1" @mouseleave="handleMouseLeave">
+            <div 
+                v-for="(dayObj, index) in currentMonthDays" 
+                :key="index" 
+                class="aspect-square relative flex items-center justify-center text-sm cursor-pointer rounded-lg transition-all"
+                :class="[
+                    !dayObj.date ? 'pointer-events-none' : 'hover:bg-gray-700 text-gray-300',
+                    isSelected(dayObj.date) ? '!bg-blue-600 !text-white !hover:bg-blue-500 font-bold shadow-md transform scale-105 z-10' : '',
+                    isInRange(dayObj.date) ? 'bg-blue-500/20 text-blue-200' : '',
+                    isToday(dayObj.date) && !isSelected(dayObj.date) ? 'text-gray-300 font-bold' : ''
+                ]"
+                @click="handleDateClick(dayObj)"
+                @mouseenter="dayObj.date && handleMouseEnter(dayObj.date)"
+            >
+                {{ dayObj.day }}
+                <!-- Today indicator underline -->
+                <span
+                    v-if="isToday(dayObj.date)"
+                    class="absolute bottom-0 left-1 right-1 h-0.5 rounded-full"
+                    :class="isSelected(dayObj.date) ? 'bg-white/70' : 'bg-orange-400'"
+                ></span>
+            </div>
+        </div>
+    </template>
     
     <!-- Footer Help Text -->
     <div class="mt-3 text-center text-xs py-2 bg-gray-900/50 rounded-lg border border-gray-700/50" :class="!startDate ? 'text-gray-500' : 'text-blue-400 font-medium'">
