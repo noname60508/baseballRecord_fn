@@ -54,7 +54,6 @@ const fetchGames = async (page = 1) => {
     const response = await gameService.getGames(params);
     games.value = response.data.result.data || [];
     totalPages.value = response.data.result.total_pages || 1;
-    gameListStore.setCurrentPage(page);
   } catch (error) {
     console.error('Failed to fetch games:', error);
   } finally {

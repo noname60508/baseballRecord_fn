@@ -1,5 +1,8 @@
 import axios from 'axios';
 import { useToast } from '@/composables/useToast';
+import router from '@/router'
+import { useAuthStore } from '@/stores/auth';
+import { useMasterDataStore } from '@/stores/masterData';
 
 // 建立 Axios 實例
 const api = axios.create({
@@ -44,7 +47,7 @@ api.interceptors.response.use(
         }
         return response;
     },
-    (error) => {
+    async (error) => {
         const { error: showError } = useToast();
 
         // 優先使用後端回傳的錯誤訊息，否則使用 HTTP 狀態訊息
@@ -55,14 +58,20 @@ api.interceptors.response.use(
 
         // 處理 401 未授權錯誤
         if (error.response && error.response.status === 401) {
-            // 清除本地儲存的驗證資料
+            // 更新 auth store 狀態（會同時清除 localStorage)
+            const authStore = useAuthStore();
+            authStore.isAuthenticated = false;
+            authStore.token = null;
+            authStore.user = null;
             localStorage.removeItem('auth_token');
             localStorage.removeItem('userId');
+            const masterDataStore = useMasterDataStore();
+            masterDataStore.clearCache();
 
             // 跳轉至登入頁面
-            // 使用 window.location.href 以避免循環依賴或是 Store 狀態同步問題
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (router.currentRoute.value.path !== '/login') {
+                console.log('Unauthorized - redirecting to login');
+                router.push('/login')
             }
         }
         return Promise.reject(error);
